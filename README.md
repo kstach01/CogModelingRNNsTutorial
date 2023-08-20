@@ -1,1 +1,3 @@
-# ccn_kt23
+# CCN Keynote + Tutorial
+## Cognitive models of Behavior: Classical and Deep Learning Approaches
+
