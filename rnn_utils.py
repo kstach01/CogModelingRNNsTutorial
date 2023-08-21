@@ -279,6 +279,7 @@ def fit_model(
         params=params,
         opt_state=opt_state,
         optimizer=optimizer,
+        dp_plot = False,
         n_steps=1000,
     )
 
