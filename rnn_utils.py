@@ -250,7 +250,7 @@ def train_model(
 def fit_model(
     model_fun,
     dataset,
-    optimizer=None
+    optimizer=None,
     convergence_thresh=1e-5,
     random_key=None,
 ):
