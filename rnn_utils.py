@@ -263,7 +263,7 @@ def fit_model(
   # Train until either the fit converges or the error is less than epsilon
   converged = False
   loss = np.inf
-  while loss > epsilon and not converged:
+  while not converged:
     params, opt_state, losses = rnn_utils.train_network(
         model_fun,
         dataset,
