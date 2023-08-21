@@ -95,7 +95,7 @@ def nan_in_dict(d):
     return any(nan_in_dict(v) for v in d.values()) 
     
 
-def fit_model(
+def train_model(
     make_network: Callable[[], hk.RNNCore],
     dataset: DatasetRNN,
     optimizer: optax.GradientTransformation = optax.adam(1e-3),
@@ -107,7 +107,7 @@ def fit_model(
     loss: str = 'categorical',
     do_plot: bool = True,
 ) -> Tuple[hk.Params, optax.OptState, Dict[str, np.ndarray]]:
-  """Trains a network.
+  """Trains a model for a fixed number of steps.
 
   Args:
     make_network: A function that, when called, returns a Haiku RNN
@@ -246,3 +246,37 @@ def fit_model(
     raise ValueError('NaN in loss')
 
   return params, opt_state, losses
+
+def fit_model(
+    model_fun,
+    dataset,
+    optimizer=None
+    convergence_thresh=1e-5,
+    random_key=None,
+):
+  """Fits a model to convergence, by repeatedly calling train_model.
+  """
+
+  if random_key is None:
+    random_key = jax.random.PRNGKey(0)
+
+  # Train until either the fit converges or the error is less than epsilon
+  converged = False
+  loss = np.inf
+  while loss > epsilon and not converged:
+    params, opt_state, losses = rnn_utils.train_network(
+        model_fun,
+        dataset,
+        params=params,
+        opt_state=opt_state,
+        opt=optimizer,
+        n_steps=1000,
+    )
+
+    loss_new = losses['training_loss'][-1]
+    # Declare "converged" if loss has not improved very much
+    converged = loss_new > loss * (1 - convergence_thresh)
+    loss = loss_new
+      
+  return params, loss
+
