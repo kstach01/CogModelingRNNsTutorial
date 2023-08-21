@@ -450,7 +450,7 @@ def show_total_reward_rate(experiment_list):
     rewards += np.sum(sessdata.rewards)
     trials += sessdata.n_trials
 
-  print('Total Reward Rate is: ', rewards/trials)
+  print('Total Reward Rate is: ', 100*rewards/trials, '%')
     
 
 ################################
