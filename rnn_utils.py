@@ -278,8 +278,6 @@ def fit_model(
     params, opt_state, losses = train_model(
         model_fun,
         dataset,
-        params=params,
-        opt_state=opt_state,
         opt=optimizer,
         n_steps=1000,
     )
