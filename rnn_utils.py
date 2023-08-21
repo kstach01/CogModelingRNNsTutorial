@@ -93,7 +93,7 @@ def nan_in_dict(d):
 
 def fit_model(
     make_network: Callable[[], hk.RNNCore],
-    training_dataset: DatasetRNN,
+    dataset: DatasetRNN,
     optimizer: optax.GradientTransformation = optax.adam(1e-3),
     random_key: Optional[chex.PRNGKey] = None,
     opt_state: Optional[optax.OptState] = None,
