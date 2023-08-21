@@ -58,6 +58,57 @@ class AgentQ:
     """
     self.q[choice] = (1 - self._alpha) * self.q[choice] + self._alpha * reward
 
+
+class AgentNetwork:
+  """A class that allows running a trained RNN as an agent.
+
+  Attributes:
+    make_network: A Haiku function that returns an RNN architecture
+    params: A set of Haiku parameters suitable for that architecture
+  """
+
+  def __init__(self,
+               make_network: Callable[[], hk.RNNCore],
+               params: hk.Params):
+
+    def step_network(xs: np.ndarray,
+                     state: hk.State) -> Tuple[np.ndarray, hk.State]:
+      core = make_network()
+      y_hat, new_state = core(xs, state)
+      return y_hat, new_state
+
+    def get_initial_state() -> hk.State:
+      core = make_network()
+      state = core.initial_state(1)
+      return state
+
+    model = hk.without_apply_rng(hk.transform(step_network))
+    state = hk.without_apply_rng(hk.transform(get_initial_state))
+
+    self._initial_state = state.apply(params)
+    self._model_fun = jax.jit(lambda xs, state: model.apply(params, xs, state))
+    self._xs = np.zeros((1, 2))
+    self.new_sess()
+
+  def new_sess(self):
+    self._state = self._initial_state
+
+  def get_choice_probs(self) -> np.ndarray:
+    output_logits, _ = self._model_fun(self._xs, self._state)
+    choice_probs = np.exp(output_logits[0]) / np.sum(
+        np.exp(output_logits[0]))
+    return choice_probs
+
+  def get_choice(self) -> Tuple[int, np.ndarray]:
+    choice_probs = self.get_choice_probs()
+    choice = np.random.choice(2, p=choice_probs)
+    return choice
+
+  def update(self, choice: int, reward: int):
+    self._xs = np.array([[choice, reward]])
+    _, self._state = self._model_fun(self._xs, self._state)
+
+
 ################
 # ENVIRONMENTS #
 ################
@@ -172,7 +223,7 @@ class BanditSession(NamedTuple):
   timeseries: np.ndarray
   n_trials: int
 
-Agent = Union[AgentQ]
+Agent = Union[AgentQ, AgentNetwork]
 Environment = Union[EnvironmentBanditsFlips, EnvironmentBanditsDrift]
 
 def run_experiment(agent: Agent,
