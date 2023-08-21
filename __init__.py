@@ -1,2 +1,2 @@
 """Initialize."""
-import agents
+from CogModelingRNNsTutorial import agents
