@@ -372,11 +372,13 @@ class HkAgentQ(hk.RNNCore):
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
     prev_qs = prev_state
     
-    choice = inputs[:, 0].astype(int)  # shape: (batch_size, 1)
+    choice = inputs[:, 0]  # shape: (batch_size, 1)
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
-    new_qs = prev_qs
-    new_qs = new_qs.at[choice].set((1-self.alpha) * prev_qs[:, choice] + self.alpha * reward[:,0])
+    choice_onehot = jax.nn.onehot(choice)
+    chosen_value = jnp.sum(prev_values * choice_onehot)
+    deltas = reward - chosen_value
+    new_qs = prev_qs + self.alpha * choice_onehot * deltas
     
     # Compute output logits
     choice_logits = self.beta * new_qs
