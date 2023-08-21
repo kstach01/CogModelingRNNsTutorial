@@ -346,7 +346,7 @@ def show_total_reward_rate(experiment_list):
 ################################
 
 
-class HkAgentQ(hk.RNNCore):
+class AgentQHk(hk.RNNCore):
   """Vanilla Q-Learning model, expressed in Haiku.
 
   Updates value of the chosen action using a delta rule with step-size parameter Alpha. 
@@ -359,7 +359,7 @@ class HkAgentQ(hk.RNNCore):
 
     # Haiku parameters
     alpha_unsigmoid = hk.get_parameter(
-        'alpha_unsigmoid', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=1),
+        'alpha_unsigmoid', (1,), init=hk.initializers.RandomUniform(minval=-1, maxval=1),
     )
     beta = hk.get_parameter(
         'beta', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=2)
@@ -367,7 +367,7 @@ class HkAgentQ(hk.RNNCore):
 
     # Local parameters
     self.alpha = jax.nn.sigmoid(alpha_unsigmoid)
-    self.beta_bias = beta
+    self.beta = beta
 
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
     prev_qs = prev_state
@@ -375,11 +375,11 @@ class HkAgentQ(hk.RNNCore):
     choice = inputs[:, 0]  # shape: (batch_size, 1)
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
-    choice_onehot = jax.nn.onehot(choice)
-    chosen_value = jnp.sum(prev_values * choice_onehot)
-    deltas = reward - chosen_value
-    new_qs = prev_qs + self.alpha * choice_onehot * deltas
-    
+    choice_onehot = jax.nn.one_hot(choice, num_classes=2) # shape: (batch_size, 2)
+    chosen_value = jnp.sum(prev_qs * choice_onehot, axis=1) # shape: (batch_size)
+    deltas = reward - chosen_value # shape: (batch_size)
+    new_qs = prev_qs + self.alpha * choice_onehot * jnp.expand_dims(deltas, -1)
+
     # Compute output logits
     choice_logits = self.beta * new_qs
     
