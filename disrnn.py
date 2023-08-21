@@ -334,15 +334,15 @@ def plot_update_rules(params, make_network):
     return fig
 
   latent_sigmas = 2*jax.nn.sigmoid(
-      jnp.array(params['hk_compartmentalized_rnn']['latent_sigmas_unsquashed'])
+      jnp.array(params['hk_dis_rnn']['latent_sigmas_unsquashed'])
       )
   update_sigmas = 2*jax.nn.sigmoid(
       np.transpose(
-          params['hk_compartmentalized_rnn']['update_mlp_sigmas_unsquashed']
+          params['hk_dis_rnn']['update_mlp_sigmas_unsquashed']
           )
       )
   latent_order = np.argsort(
-      params['hk_compartmentalized_rnn']['latent_sigmas_unsquashed']
+      params['hk_dis_rnn']['latent_sigmas_unsquashed']
       )
   figs = []
 
