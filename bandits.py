@@ -370,7 +370,7 @@ class HkAgentQ(hk.RNNCore):
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
     prev_qs = prev_state
     
-    choice = inputs[:, 0]  # shape: (batch_size, 1)
+    choice = int(inputs[:, 0])  # shape: (batch_size, 1)
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
     new_qs = prev_qs
