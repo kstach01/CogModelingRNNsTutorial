@@ -95,8 +95,8 @@ class AgentNetwork:
 
   def get_choice_probs(self) -> np.ndarray:
     output_logits, _ = self._model_fun(self._xs, self._state)
-    choice_probs = jnp.exp(output_logits[0]) / jnp.sum(
-        jnp.exp(output_logits[0]))
+    choice_probs = np.exp(output_logits[0]) / np.sum(
+        np.exp(output_logits[0]))
     return choice_probs
 
   def get_choice(self) -> Tuple[int, np.ndarray]:
