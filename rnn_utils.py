@@ -1,6 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
+import jax/numpy as jnp
 import haiku as hk
 import optax
 import chex
