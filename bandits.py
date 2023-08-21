@@ -347,9 +347,11 @@ def show_total_reward_rate(experiment_list):
 
 
 class HkAgentQ(hk.RNNCore):
-  """Cognitive model from Miller, Botvinick, and Brody, expressed in Haiku.
+  """Vanilla Q-Learning model, expressed in Haiku.
 
-  Three agents: Reward-seeking, habit, gamblers fallacy
+  Updates value of the chosen action using a delta rule with step-size parameter Alpha. 
+  Does not update value of the unchosen action.
+  Selects actions using a softmax decision rule with parameter Beta.
   """
 
   def __init__(self, n_cs=4):
@@ -374,7 +376,7 @@ class HkAgentQ(hk.RNNCore):
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
     new_qs = prev_qs
-    new_qs[:, choice] = (1-self.alpha) * prev_qs[:, choice] + self.alpha * reward
+    new_qs = new_qs.at[choice].set((1-self.alpha) * prev_qs[:, choice] + self.alpha * reward)
     
     # Compute output logits
     choice_logits = self.beta * new_qs
