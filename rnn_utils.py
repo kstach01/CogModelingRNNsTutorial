@@ -1,6 +1,6 @@
-from typing import Any, Callable, Dict, Optional, Tuple
-
 from __future__ import print_function
+
+from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
 import jax
