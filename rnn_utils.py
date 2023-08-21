@@ -1,7 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
 import numpy as np
-
+import optax
 
 class DatasetRNN():
   """Holds a dataset for training an RNN, consisting of inputs and targets.
