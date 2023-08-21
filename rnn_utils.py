@@ -104,7 +104,7 @@ def train_model(
     params: Optional[hk.Params] = None,
     n_steps: int = 1000,
     penalty_scale=0,
-    loss: str = 'categorical',
+    loss_fun: str = 'categorical',
     do_plot: bool = True,
 ) -> Tuple[hk.Params, optax.OptState, Dict[str, np.ndarray]]:
   """Trains a model for a fixed number of steps.
@@ -198,7 +198,7 @@ def train_model(
       'categorical': categorical_loss,
       'penalized_categorical': penalized_categorical_loss,
   }
-  compute_loss = jax.jit(losses[loss])
+  compute_loss = jax.jit(losses[loss_fun])
 
   # Define what it means to train a single step
   @jax.jit
@@ -252,7 +252,7 @@ def fit_model(
     model_fun,
     dataset,
     optimizer=None,
-    loss:str='categorical',
+    loss_fun:str='categorical',
     convergence_thresh=1e-5,
     random_key=None,
 ):
@@ -280,7 +280,7 @@ def fit_model(
         params=params,
         opt_state=opt_state,
         optimizer=optimizer,
-        loss = loss,
+        loss_fun = loss_fun,
         do_plot = False,
         n_steps=1000,
     )
