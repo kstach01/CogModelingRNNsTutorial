@@ -223,7 +223,7 @@ def train_model(
     if step % 10 == 9:
       training_loss.append(float(loss))
       print((f'\rStep {step + 1} of {n_steps}; '
-             f'Loss: {loss:.2e}. '), end='')
+             f'Loss: {loss:.4e}. '), end='')
 
   # If we actually did any training, print final loss and make a nice plot
   if n_steps > 1 and do_plot:
