@@ -252,6 +252,7 @@ def fit_model(
     model_fun,
     dataset,
     optimizer=None,
+    loss:str='categorical',
     convergence_thresh=1e-5,
     random_key=None,
 ):
@@ -279,6 +280,7 @@ def fit_model(
         params=params,
         opt_state=opt_state,
         optimizer=optimizer,
+        loss = loss,
         do_plot = False,
         n_steps=1000,
     )
