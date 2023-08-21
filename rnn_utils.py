@@ -294,3 +294,44 @@ def fit_model(
       
   return params, loss
 
+def eval_model(
+    model_fun: Callable[[], hk.RNNCore],
+    params: hk.Params,
+    xs: np.ndarray,
+) ->  Tuple[np.ndarray, Any]:
+  """Run an RNN with specified params and inputs. Track internal state.
+
+  Args:
+    make_network: A Haiku function that defines a network architecture
+    params: A set of params suitable for that network
+    xs: A batch of inputs [timesteps, episodes, features] suitable for the model
+
+  Returns:
+    y_hats: Network outputs at each timestep
+    states: Network states at each timestep
+  """
+
+  n_steps = jnp.shape(xs)[0]
+
+  def unroll_network(xs):
+    core = model_fun()
+    batch_size = jnp.shape(xs)[1]
+    state = core.initial_state(batch_size)
+
+    y_hats = []
+    states = []
+
+    for t in range(n_steps):
+      states.append(state)
+      y_hat, new_state = core(xs[t, :], state)
+      state = new_state
+
+      y_hats.append(y_hat)
+
+    return np.asarray(y_hats), np.asarray(states)
+
+  model = hk.transform(unroll_network)
+  key = jax.random.PRNGKey(np.random.randint(2**32))
+  y_hats, states = model.apply(params, key, xs)
+
+  return np.asarray(y_hats), states
