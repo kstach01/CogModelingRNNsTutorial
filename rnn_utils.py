@@ -3,6 +3,7 @@ from typing import Any, Callable, Dict, Optional, Tuple
 import numpy as np
 import haiku as hk
 import optax
+import chex
 
 class DatasetRNN():
   """Holds a dataset for training an RNN, consisting of inputs and targets.
