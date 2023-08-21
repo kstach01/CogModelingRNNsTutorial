@@ -440,6 +440,19 @@ def show_valuemetric(experiment_list):
   plt.ylim((0,1))
   plt.xlabel('Difference in Reward Probability (left - right)')
   plt.ylabel('Proportion of Leftward Choices')
+
+
+def show_total_reward_rate(experiment_list):
+  rewards = 0
+  trials = 0
+
+  for sessdata in experiment_list:
+    rewards += np.sum(sessdata['rewards'])
+    trials += sessdata['n_trials']
+
+  print('Total Reward Rate is: ', rewards/trials
+    
+
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
 ################################
