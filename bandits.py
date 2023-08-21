@@ -323,6 +323,7 @@ def run_experiment(agent: Agent,
                             timeseries=reward_probs)
   return experiment
 
+
 def plot_session(choices: np.ndarray,
                     rewards: np.ndarray,
                     n_trials: int,
@@ -377,6 +378,42 @@ def plot_session(choices: np.ndarray,
 
   plt.xlabel('Trial')
   plt.ylabel(timeseries_name)
+
+
+def create_dataset(agent: Agent,
+                   environment: Environment,
+                   n_trials_per_session: int,
+                   n_sessions: int,
+                   batch_size: Optional[int] = None):
+  """Generates a behavioral dataset from a given agent and environment.
+
+  Args:
+    agent: An agent object to generate choices
+    environment: An environment object to generate rewards
+    n_trials_per_session: The number of trials in each behavioral session to
+      be generated
+    n_sessions: The number of sessions to generate
+    batch_size: The size of the batches to serve from the dataset. If None, 
+      batch_size defaults to n_sessions
+
+  Returns:
+    A DatasetRNN object suitable for training RNNs.
+  """
+  xs = np.zeros((n_trials_per_session, n_sessions, 2))
+  ys = np.zeros((n_trials_per_session, n_sessions, 1))
+
+  for experiment_i in np.arange(n_experiments):
+    experiment = run_experiment(agent, environment, n_steps_per_experiment)
+    prev_choices = np.concatenate(([0], experiment.choices[0:-1]))
+    prev_rewards = np.concatenate(([0], experiment.rewards[0:-1]))
+    xs[:, experiment_i] = np.swapaxes(
+        np.concatenate(([prev_choices], [prev_rewards]), axis=0), 0, 1)
+    ys[:, experiment_i] = np.expand_dims(experiment.choices, 1)
+
+  dataset = DatasetRNN(xs, ys, batch_size)
+  return dataset
+
+
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
 ################################
