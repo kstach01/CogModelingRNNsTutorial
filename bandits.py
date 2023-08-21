@@ -297,13 +297,13 @@ def run_experiment(agent: Agent,
   Returns:
     experiment: A YMazeSession holding choices and rewards from the session
   """
-  choices = np.zeros(n_steps)
-  rewards = np.zeros(n_steps)
-  reward_probs = np.zeros((n_steps, 2))
+  choices = np.zeros(n_trials)
+  rewards = np.zeros(n_trials)
+  reward_probs = np.zeros((n_trials, 2))
 
-  for step in np.arange(n_steps):
+  for trial in np.arange(n_trials):
     # First record environment reward probs
-    reward_probs[step] = environment.reward_probs
+    reward_probs[trial] = environment.reward_probs
     # First agent makes a choice
     choice = agent.get_choice()
     # Then environment computes a reward
@@ -311,8 +311,8 @@ def run_experiment(agent: Agent,
     # Finally agent learns
     agent.update(choice, reward)
     # Log choice and reward
-    choices[step] = choice
-    rewards[step] = reward
+    choices[trial] = choice
+    rewards[trial] = reward
 
   experiment = BanditSession(choices=choices,
                             rewards=rewards,
