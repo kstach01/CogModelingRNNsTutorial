@@ -224,8 +224,8 @@ def plot_session(choices: np.ndarray,
   choose_low = choices == 0
   rewarded = rewards == 1
 
-  y_high = np.maximum(timeseries) + 0.1
-  y_low = np.minimum(timeseries) - 0.1
+  y_high = np.max(timeseries) + 0.1
+  y_low = np.min(timeseries) - 0.1
 
   # Make the plot
   plt.subplots(figsize=(10, 3))
