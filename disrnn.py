@@ -1,4 +1,4 @@
-from typing import Iterable
+from typing import Iterable, Callable
 
 import haiku as hk
 import numpy as np
