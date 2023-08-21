@@ -195,15 +195,15 @@ class EnvironmentBanditsFlips:
     self._block = 1 - self._block
     # Set the reward probabilites
     if self._block == 1:
-      self.reward_probabilities = [self._reward_prob_high,
+      self.reward_probs = [self._reward_prob_high,
                                    self._reward_prob_low]
     else:
-      self.reward_probabilities = [self._reward_prob_low,
+      self.reward_probs = [self._reward_prob_low,
                                    self._reward_prob_high]
 
   def next_trial(self, choice):
     # Choose the reward probability associated with the choice that the agent made
-    reward_prob_trial = self.reward_probabilities[choice]
+    reward_prob_trial = self.reward_probs[choice]
 
     # Sample a reward with this probability
     reward = np.random.binomial(1, reward_prob_trial)
