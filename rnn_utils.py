@@ -222,7 +222,7 @@ def fit_model(
       training_loss.append(float(loss))
       # Test on validation data
       print((f'Step {step + 1} of {n_steps}. '
-             f'Training Loss: {loss:.2e}. '), end='\r')
+             f'Training Loss: {loss:.2e}. '))
 
   # If we actually did any training, print final loss and make a nice plot
   if n_steps > 1 and do_plot:
