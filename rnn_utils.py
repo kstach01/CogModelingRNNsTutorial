@@ -245,7 +245,5 @@ def fit_model(
     print(params)
   if len(training_loss) > 0 and np.isnan(training_loss[-1]):
     raise ValueError('NaN in loss')
-  if len(validation_loss) > 0 and np.isnan(validation_loss[-1]):
-    raise ValueError('NaN in loss')
 
   return params, opt_state, losses
