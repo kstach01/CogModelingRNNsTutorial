@@ -1,3 +1,5 @@
+import numpy as np
+
 ###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
 ###################################
