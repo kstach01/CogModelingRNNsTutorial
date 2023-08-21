@@ -224,6 +224,9 @@ def plot_session(choices: np.ndarray,
   choose_low = choices == 0
   rewarded = rewards == 1
 
+  y_high = np.maximum(timeseries) + 0.1
+  y_low = np.minimum(timeseries) - 0.1
+
   # Make the plot
   plt.subplots(figsize=(10, 3))
   plt.plot(timeseries)
@@ -231,36 +234,36 @@ def plot_session(choices: np.ndarray,
   # Rewarded high
   plt.scatter(
       np.argwhere(choose_high & rewarded),
-      1.1 * np.ones(np.sum(choose_high & rewarded)),
+      y_high * np.ones(np.sum(choose_high & rewarded)),
       color='green',
       marker=3)
   plt.scatter(
       np.argwhere(choose_high & rewarded),
-      1.1 * np.ones(np.sum(choose_high & rewarded)),
+      y_high * np.ones(np.sum(choose_high & rewarded)),
       color='green',
       marker='|')
   # Omission high
   plt.scatter(
       np.argwhere(choose_high & 1 - rewarded),
-      1.1 * np.ones(np.sum(choose_high & 1 - rewarded)),
+      y_high * np.ones(np.sum(choose_high & 1 - rewarded)),
       color='red',
       marker='|')
 
   # Rewarded low
   plt.scatter(
       np.argwhere(choose_low & rewarded),
-      -0.1 * np.ones(np.sum(choose_low & rewarded)),
+      y_low * np.ones(np.sum(choose_low & rewarded)),
       color='green',
       marker='|')
   plt.scatter(
       np.argwhere(choose_low & rewarded),
-      -0.1 * np.ones(np.sum(choose_low & rewarded)),
+      y_low * np.ones(np.sum(choose_low & rewarded)),
       color='green',
       marker=2)
   # Omission Low
   plt.scatter(
       np.argwhere(choose_low & 1 - rewarded),
-      -0.1 * np.ones(np.sum(choose_low & 1 - rewarded)),
+      y_low * np.ones(np.sum(choose_low & 1 - rewarded)),
       color='red',
       marker='|')
 
