@@ -401,9 +401,11 @@ def create_dataset(agent: Agent,
   """
   xs = np.zeros((n_trials_per_session, n_sessions, 2))
   ys = np.zeros((n_trials_per_session, n_sessions, 1))
-
+  experiment_list = []
+    
   for sess_i in np.arange(n_sessions):
     experiment = run_experiment(agent, environment, n_trials_per_session)
+    experiment_list.append(experiment)
     prev_choices = np.concatenate(([0], experiment.choices[0:-1]))
     prev_rewards = np.concatenate(([0], experiment.rewards[0:-1]))
     xs[:, sess_i] = np.swapaxes(
@@ -411,7 +413,7 @@ def create_dataset(agent: Agent,
     ys[:, sess_i] = np.expand_dims(experiment.choices, 1)
 
   dataset = DatasetRNN(xs, ys, batch_size)
-  return dataset
+  return dataset, experiment_list
 
 
 ################################
