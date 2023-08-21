@@ -148,7 +148,6 @@ def fit_model(
   if params is None:
     random_key, key1 = jax.random.split(random_key)
     params = model.init(key1, sample_xs)
-    print(params)
   # It an optimizer state has not been supplied, start optimizer from scratch
   if opt_state is None:
     opt_state = optimizer.init(params)
