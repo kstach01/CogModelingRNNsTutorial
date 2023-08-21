@@ -346,7 +346,7 @@ def show_total_reward_rate(experiment_list):
 ################################
 
 
-class AgentQHk(hk.RNNCore):
+class HkAgentQ(hk.RNNCore):
   """Vanilla Q-Learning model, expressed in Haiku.
 
   Updates value of the chosen action using a delta rule with step-size parameter Alpha. 
