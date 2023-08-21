@@ -425,8 +425,7 @@ def show_valuemetric(experiment_list):
   n_left = np.zeros(len(reward_prob_bins)-1)
   n_right = np.zeros(len(reward_prob_bins)-1)
   
-  for sess_i in range(n_sessions):
-    sessdata = experiment_list[sess_i]
+  for sessdata in experiment_list:
     reward_prob_diff = sessdata.timeseries[:,0] - sessdata.timeseries[:,1]
     for reward_prob_i in range(len(n_left)): 
       trials_in_bin = np.logical_and((reward_prob_bins[reward_prob_i] < reward_prob_diff) , (reward_prob_diff < reward_prob_bins[reward_prob_i+1]))
