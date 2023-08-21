@@ -2,6 +2,8 @@ from typing import Callable, NamedTuple, Tuple, Union
 
 import numpy as np
 import haiku as hk
+import matplotlib.pyplot as plt
+
 import jax
 
 
