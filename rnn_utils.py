@@ -227,7 +227,7 @@ def fit_model(
   # If we actually did any training, print final loss and make a nice plot
   if n_steps > 1 and do_plot:
     print((f'Step {n_steps} of {n_steps}. '
-           f'Loss: {loss:.2e}.'))
+           f'Loss: {loss:.2e}.'), end='\r')
 
     plt.figure()
     plt.semilogy(training_loss, color='black')
