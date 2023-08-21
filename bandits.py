@@ -281,7 +281,7 @@ class BanditSession(NamedTuple):
 
 Agent = Union[AgentQ, AgentLeakyActorCritic, AgentNetwork]
 Environment = Union[
-    EnvironmentDualVI, EnvironmentBanditsBlock, EnvironmentBanditsDrift
+    EnvironmentBanditsBlock, EnvironmentBanditsDrift
 ]
 
 def run_experiment(agent: Agent,
