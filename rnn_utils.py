@@ -96,7 +96,7 @@ def nan_in_dict(d):
     
 
 def train_model(
-    make_network: Callable[[], hk.RNNCore],
+    model_fun: Callable[[], hk.RNNCore],
     dataset: DatasetRNN,
     optimizer: optax.GradientTransformation = optax.adam(1e-3),
     random_key: Optional[chex.PRNGKey] = None,
@@ -110,7 +110,7 @@ def train_model(
   """Trains a model for a fixed number of steps.
 
   Args:
-    make_network: A function that, when called, returns a Haiku RNN
+    model_fun: A function that, when called, returns a Haiku RNN object
     training_dataset: A DatasetRNN, containing the data you wish to train on
     opt: The optimizer you'd like to use to train the network
     random_key: A jax random key, to be used in initializing the network
@@ -133,7 +133,7 @@ def train_model(
 
   # Haiku, step one: Define the batched network
   def unroll_network(xs):
-    core = make_network()
+    core = model_fun()
     batch_size = jnp.shape(xs)[1]
     state = core.initial_state(batch_size)
     ys, _ = hk.dynamic_unroll(core, xs, state)
@@ -246,6 +246,7 @@ def train_model(
     raise ValueError('NaN in loss')
 
   return params, opt_state, losses
+
 
 def fit_model(
     model_fun,
