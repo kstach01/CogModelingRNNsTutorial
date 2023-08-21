@@ -177,9 +177,9 @@ class EnvironmentBanditsFlips:
 
   def __init__(
       self,
-      block_flip_prob,
-      reward_prob_high,
-      reward_prob_low,
+      block_flip_prob: float=0.02,
+      reward_prob_high: float=0.8,
+      reward_prob_low: float=0.2,
   ):
     # Assign the input parameters as properties
     self._block_flip_prob = block_flip_prob
@@ -201,7 +201,7 @@ class EnvironmentBanditsFlips:
       self.reward_probs = [self._reward_prob_low,
                                    self._reward_prob_high]
 
-  def next_trial(self, choice):
+  def step(self, choice):
     # Choose the reward probability associated with the choice that the agent made
     reward_prob_trial = self.reward_probs[choice]
 
