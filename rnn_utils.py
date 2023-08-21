@@ -337,3 +337,70 @@ def eval_model(
   y_hats, states = model.apply(params, key, xs)
 
   return np.asarray(y_hats), states
+
+
+def step_network(
+    make_network: Callable[[], hk.RNNCore],
+    params: hk.Params,
+    state: Any,
+    xs: np.ndarray,
+) -> Tuple[np.ndarray, Any]:
+  """Run an RNN for just a single step on a single input (no batching).
+
+  Args:
+    make_network: A Haiku function that defines a network architecture
+    params: A set of params suitable for that network
+    state: An RNN state suitable for that network
+    xs: An input for a single timestep from a single episode, with
+      shape [n_features]
+
+  Returns:
+    y_hat: The output given by the network, with dimensionality [n_features]
+    new_state: The new RNN state of the network
+  """
+
+  def step_sub(xs):
+    core = make_network()
+    y_hat, new_state = core(xs, state)
+    return y_hat, new_state
+
+  model = hk.transform(step_sub)
+  key = jax.random.PRNGKey(np.random.randint(2**32))
+  y_hat, new_state = model.apply(params, key, np.expand_dims(xs, axis=0))
+
+  return y_hat, new_state
+
+
+def get_initial_state(make_network: Callable[[], hk.RNNCore],
+                      params: Optional[Any] = None) -> Any:
+  """Get the default initial state for a network architecture.
+
+  Args:
+    make_network: A Haiku function that defines a network architecture
+    params: Optional parameters for the Hk function. If not passed, will init
+      new parameters. For many models this will not affect initial state
+
+  Returns:
+    initial_state: An initial state from that network
+  """
+
+  # The logic below needs a jax randomy key and a sample input in order to work.
+  # But neither of these will affect the initial network state, so its ok to
+  # generate throwaways
+  random_key = jax.random.PRNGKey(np.random.randint(2**32))
+
+  def unroll_network():
+    core = make_network()
+    state = core.initial_state(batch_size=1)
+
+    return state
+
+  model = hk.transform(unroll_network)
+
+  if params is None:
+    params = model.init(random_key)
+
+  initial_state = model.apply(params, random_key)
+
+  return initial_state
+
