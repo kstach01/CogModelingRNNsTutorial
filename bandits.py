@@ -406,7 +406,7 @@ def create_dataset(agent: Agent,
     experiment = run_experiment(agent, environment, n_trials_per_session)
     prev_choices = np.concatenate(([0], experiment.choices[0:-1]))
     prev_rewards = np.concatenate(([0], experiment.rewards[0:-1]))
-    xs[:, experiment_i] = np.swapaxes(
+    xs[:, sess_i] = np.swapaxes(
         np.concatenate(([prev_choices], [prev_rewards]), axis=0), 0, 1)
     ys[:, sess_i] = np.expand_dims(experiment.choices, 1)
 
