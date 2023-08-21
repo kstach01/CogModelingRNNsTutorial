@@ -289,7 +289,7 @@ def fit_model(
     if converged:
       print('Model Converged!')
     else:
-      print('Model not yet converged. Going back for another round of fitting')
+      print('Model not yet converged - Running more steps of gradient descent.')
     loss = loss_new
       
   return params, loss
