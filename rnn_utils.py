@@ -6,6 +6,7 @@ import jax.numpy as jnp
 import haiku as hk
 import optax
 import chex
+import matplotlib as plt
 
 class DatasetRNN():
   """Holds a dataset for training an RNN, consisting of inputs and targets.
