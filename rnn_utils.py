@@ -206,7 +206,7 @@ def fit_model(
         params, xs, ys, random_key
     )
     grads, opt_state = optimizer.update(grads, opt_state)
-    params = optax.apply_updates(params, clipped_grads)
+    params = optax.apply_updates(params, grads)
     return loss, params, opt_state
 
   # Train the network!
