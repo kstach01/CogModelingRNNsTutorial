@@ -5,7 +5,7 @@ import haiku as hk
 import matplotlib.pyplot as plt
 import jax
 
-from rnn_utils import DatasetRNN
+from CogModelingRNNsTutorial.rnn_utils import DatasetRNN
 
 ###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
