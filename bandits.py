@@ -1,4 +1,4 @@
-from typing import Callable, NamedTuple, Tuple, Union
+from typing import Callable, NamedTuple, Tuple, Union, Optional
 
 import numpy as np
 import haiku as hk
