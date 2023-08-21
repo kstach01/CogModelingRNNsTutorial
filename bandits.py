@@ -415,7 +415,32 @@ def create_dataset(agent: Agent,
   dataset = DatasetRNN(xs, ys, batch_size)
   return dataset, experiment_list
 
+###############
+# DIAGNOSTICS #
+###############
 
+def show_valuemetric(experiment_list):
+    
+  reward_prob_bins = np.linspace(-1,1,50)
+  n_left = np.zeros(len(reward_prob_bins)-1)
+  n_right = np.zeros(len(reward_prob_bins)-1)
+  
+  for sess_i in range(n_sessions):
+    sessdata = experiment_list[sess_i]
+    reward_prob_diff = sessdata.timeseries[:,0] - sessdata.timeseries[:,1]
+    for reward_prob_i in range(len(n_left)): 
+      trials_in_bin = np.logical_and((reward_prob_bins[reward_prob_i] < reward_prob_diff) , (reward_prob_diff < reward_prob_bins[reward_prob_i+1]))
+      n_left[reward_prob_i] += np.sum(np.logical_and(trials_in_bin, sessdata.choices == 0.))
+      n_right[reward_prob_i] += np.sum(np.logical_and(trials_in_bin, sessdata.choices == 1.))
+  
+  choice_probs = n_left / (n_left + n_right)
+  
+  xs = reward_prob_bins[:-1] - (reward_prob_bins[1]-reward_prob_bins[0])/2
+  ys = choice_probs
+  plt.plot(xs, ys)
+  plt.ylim((0,1))
+  plt.xlabel('Difference in Reward Probability (left - right)')
+  plt.ylabel('Proportion of Leftward Choices')
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
 ################################
