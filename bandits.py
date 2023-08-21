@@ -279,6 +279,10 @@ class BanditSession(NamedTuple):
   reward_probs: np.ndarray
   n_trials: int
 
+Agent = Union[AgentQ, AgentLeakyActorCritic, AgentNetwork]
+Environment = Union[
+    EnvironmentDualVI, EnvironmentBanditsBlock, EnvironmentBanditsDrift
+]
 
 def run_experiment(agent: Agent,
                    environment: Environment,
