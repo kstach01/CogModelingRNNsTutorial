@@ -4,6 +4,7 @@ import haiku as hk
 import numpy as np
 import jax
 import jax.numpy as jnp
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 from CogModelingRNNsTutorial import rnn_utils
