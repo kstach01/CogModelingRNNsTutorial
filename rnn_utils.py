@@ -1,5 +1,7 @@
 from typing import Any, Callable, Dict, Optional, Tuple
 
+from __future__ import print_function
+
 import numpy as np
 import jax
 import jax.numpy as jnp
