@@ -4,6 +4,9 @@ import numpy as np
 import haiku as hk
 import jax
 
+!pip install -U dm-haiku
+import haiku as hk
+
 ###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
 ###################################
