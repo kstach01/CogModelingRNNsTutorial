@@ -163,3 +163,232 @@ class HkDisRNN(hk.RNNCore):
     # (batch_size, latent_size)
     latents = jnp.ones([batch_size, self._latent_size]) * self._latent_inits
     return latents
+
+
+def plot_bottlenecks(params, sort_latents=True, obs_names=None):
+  """Plot the bottleneck sigmas from an hk.CompartmentalizedRNN."""
+  params_disrnn = params['hk_compartmentalized_rnn']
+  latent_dim = params_disrnn['latent_sigmas_unsquashed'].shape[0]
+  obs_dim = params_disrnn['update_mlp_sigmas_unsquashed'].shape[0] - latent_dim
+  
+  if obs_names is None:
+    if obs_dim == 2:
+      obs_names = ['Choice', 'Reward']
+    elif obs_dim == 5:
+      obs_names = ['A', 'B', 'C', 'D', 'Reward']
+    else: 
+      obs_names = np.arange(1, obs_dim+1)
+
+  
+  latent_sigmas = 2 * jax.nn.sigmoid(
+      jnp.array(params_disrnn['latent_sigmas_unsquashed'])
+  )
+
+  update_sigmas = 2 * jax.nn.sigmoid(
+      np.transpose(
+          params_disrnn['update_mlp_sigmas_unsquashed']
+      )
+  )
+
+  if sort_latents:
+    latent_sigma_order = np.argsort(
+        params_disrnn['latent_sigmas_unsquashed']
+    )
+    latent_sigmas = latent_sigmas[latent_sigma_order]
+    
+    update_sigma_order = np.concatenate(
+        (np.arange(0, obs_dim, 1), obs_dim + latent_sigma_order), axis=0
+    )
+    update_sigmas = update_sigmas[latent_sigma_order, :]
+    update_sigmas = update_sigmas[:, update_sigma_order]
+  
+    
+    
+  latent_names = np.arange(1, latent_dim + 1)
+  fig = plt.subplots(1, 2, figsize=(10, 5))
+  plt.subplot(1, 2, 1)
+  plt.imshow(np.swapaxes([1 - latent_sigmas], 0, 1), cmap='Oranges')
+  plt.clim(vmin=0, vmax=1)
+  plt.yticks(ticks=range(latent_dim), labels=latent_names)
+  plt.xticks(ticks=[])
+  plt.ylabel('Latent #')
+  plt.title('Latent Bottlenecks')
+
+  plt.subplot(1, 2, 2)
+  plt.imshow(1 - update_sigmas, cmap='Oranges')
+  plt.clim(vmin=0, vmax=1)
+  plt.colorbar()
+  plt.yticks(ticks=range(latent_dim), labels=latent_names)
+  xlabels = np.concatenate((np.array(obs_names), latent_names))
+  plt.xticks(
+      ticks=range(len(xlabels)),
+      labels=xlabels,
+      rotation='vertical',
+  )
+  plt.ylabel('Latent #')
+  plt.title('Update MLP Bottlenecks')
+  return fig
+
+def plot_update_rules(params, make_network):
+  """Generates visualizations of the update ruled of a HkCompartmentalizedRNN.
+  """
+
+  def step(xs, state):
+    core = make_network()
+    output, new_state = core(jnp.expand_dims(jnp.array(xs), axis=0), state)
+    return output, new_state
+
+  _, step_hk = hk.transform(step)
+  key = jax.random.PRNGKey(0)
+  step_hk = jax.jit(step_hk)
+
+  initial_state = np.array(rnn_utils.get_initial_state(make_network))
+  reference_state = np.zeros(initial_state.shape)
+
+  def plot_update_1d(params, unit_i, observations, titles):
+    lim = 3
+    state_bins = np.linspace(-lim, lim, 20)
+    colormap = mpl.colormaps['viridis'].resampled(3)
+    colors = colormap.colors
+
+    fig, ax = plt.subplots(
+        1, len(observations), figsize=(len(observations) * 4, 5.5)
+    )
+    plt.subplot(1, len(observations), 1)
+    plt.ylabel('Updated Activity')
+
+    for observation_i in range(len(observations)):
+      observation = observations[observation_i]
+      plt.subplot(1, len(observations), observation_i + 1)
+
+      plt.plot((-3, 3), (-3, 3), '--', color='grey')
+      plt.plot((-3, 3), (0, 0), color='black')
+      plt.plot((0, 0), (-3, 3), color='black')
+
+      delta_states = np.zeros(shape=(len(state_bins), 1))
+      for s_i in np.arange(len(state_bins)):
+        state = reference_state
+        state[0, unit_i] = state_bins[s_i]
+        _, next_state = step_hk(
+            params, key, observation, state
+        )
+        delta_states[s_i] = next_state[0, unit_i]  # - state[0, unit_i]
+
+      plt.plot(state_bins, delta_states, color=colors[1])
+
+      plt.title(titles[observation_i])
+      plt.xlim(-lim, lim)
+      plt.ylim(-lim, lim)
+      plt.xlabel('Previous Activity')
+
+      if isinstance(ax, np.ndarray):
+        ax[observation_i].set_aspect('equal')
+      else:
+        ax.set_aspect('equal')
+    return fig
+
+  def plot_update_2d(params, unit_i, unit_input, observations, titles):
+    lim = 3
+
+    state_bins = np.linspace(-lim, lim, 20)
+    colormap = mpl.colormaps['viridis'].resampled(len(state_bins))
+    colors = colormap.colors
+
+    fig, ax = plt.subplots(
+        1, len(observations), figsize=(len(observations) * 2 + 10, 5.5)
+    )
+    plt.subplot(1, len(observations), 1)
+    plt.ylabel('Updated Latent ' + str(unit_i + 1) + ' Activity')
+
+    for observation_i in range(len(observations)):
+      observation = observations[observation_i]
+      plt.subplot(1, len(observations), observation_i + 1)
+
+      plt.plot((-3, 3), (-3, 3), '--', color='grey')
+      plt.plot((-3, 3), (0, 0), color='black')
+      plt.plot((0, 0), (-3, 3), color='black')
+
+      for si_i in np.arange(len(state_bins)):
+        delta_states = np.zeros(shape=(len(state_bins), 1))
+        for s_i in np.arange(len(state_bins)):
+          state = reference_state
+          state[0, unit_i] = state_bins[s_i]
+          state[0, unit_input] = state_bins[si_i]
+          _, next_state = step_hk(params, key, observation, state)
+          delta_states[s_i] = next_state[0, unit_i]
+
+        plt.plot(state_bins, delta_states, color=colors[si_i])
+
+      plt.title(titles[observation_i])
+      plt.xlim(-lim, lim)
+      plt.ylim(-lim, lim)
+      plt.xlabel('Latent ' + str(unit_i + 1) + ' Activity')
+
+      if isinstance(ax, np.ndarray):
+        ax[observation_i].set_aspect('equal')
+      else:
+        ax.set_aspect('equal')
+    return fig
+
+  latent_sigmas = 2*jax.nn.sigmoid(
+      jnp.array(params['hk_compartmentalized_rnn']['latent_sigmas_unsquashed'])
+      )
+  update_sigmas = 2*jax.nn.sigmoid(
+      np.transpose(
+          params['hk_compartmentalized_rnn']['update_mlp_sigmas_unsquashed']
+          )
+      )
+  latent_order = np.argsort(
+      params['hk_compartmentalized_rnn']['latent_sigmas_unsquashed']
+      )
+  figs = []
+
+  # Loop over latents. Plot update rules
+  for latent_i in latent_order:
+    # If this latent's bottleneck is open
+    if latent_sigmas[latent_i] < 0.5:
+      # Which of its input bottlenecks are open?
+      update_mlp_inputs = np.argwhere(update_sigmas[latent_i] < 0.9)
+      choice_sensitive = np.any(update_mlp_inputs == 0)
+      reward_sensitive = np.any(update_mlp_inputs == 1)
+      # Choose which observations to use based on input bottlenecks
+      if choice_sensitive and reward_sensitive:
+        observations = ([0, 0], [0, 1], [1, 0], [1, 1])
+        titles = ('Left, Unrewarded',
+                  'Left, Rewarded',
+                  'Right, Unrewarded',
+                  'Right, Rewarded')
+      elif choice_sensitive:
+        observations = ([0, 0], [1, 0])
+        titles = ('Choose Left', 'Choose Right')
+      elif reward_sensitive:
+        observations = ([0, 0], [0, 1])
+        titles = ('Rewarded', 'Unreward')
+      else:
+        observations = ([0, 0],)
+        titles = ('All Trials',)
+      # Choose whether to condition on other latent values
+      latent_sensitive = update_mlp_inputs[update_mlp_inputs > 1] - 2
+      # Doesn't count if it depends on itself (this'll be shown no matter what)
+      latent_sensitive = np.delete(
+          latent_sensitive, latent_sensitive == latent_i
+      )
+      if not latent_sensitive.size:  # Depends on no other latents
+        fig = plot_update_1d(params, latent_i, observations, titles)
+      else:  # It depends on latents other than itself.
+        fig = plot_update_2d(
+            params,
+            latent_i,
+            latent_sensitive[np.argmax(latent_sensitive)],
+            observations,
+            titles,
+        )
+      if len(latent_sensitive) > 1:
+        print(
+            'WARNING: This update rule depends on more than one '
+            + 'other latent. Plotting just one of them'
+        )
+
+      figs.append(fig)
+
+  return figs
