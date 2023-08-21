@@ -265,7 +265,7 @@ def fit_model(
   converged = False
   loss = np.inf
   while not converged:
-    params, opt_state, losses = rnn_utils.train_network(
+    params, opt_state, losses = train_model(
         model_fun,
         dataset,
         params=params,
