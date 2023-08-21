@@ -295,7 +295,7 @@ def run_experiment(agent: Agent,
     n_steps: The number of steps in the session you'd like to generate
 
   Returns:
-    experiment: A YMazeSession holding choices and rewards from the session
+    experiment: A BanditSession holding choices and rewards from the session
   """
   choices = np.zeros(n_trials)
   rewards = np.zeros(n_trials)
@@ -316,7 +316,7 @@ def run_experiment(agent: Agent,
 
   experiment = BanditSession(choices=choices,
                             rewards=rewards,
-                            n_trials=n_steps,
+                            n_trials=n_trials,
                             reward_probs=reward_probs)
   return experiment
     
