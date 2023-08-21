@@ -57,117 +57,6 @@ class AgentQ:
     """
     self.q[choice] = (1 - self._alpha) * self.q[choice] + self._alpha * reward
 
-
-class AgentLeakyActorCritic:
-  """An agent that runs Actor-Critic learning for the y-maze tasks.
-
-  Attributes:
-    alpha_critic: The critic's learning rate
-    alpha_actor: The actor's learning rate
-    gamma: The actor's forgetting rate
-    theta: The actor's policy parameter
-    v: The critic's estimate of environmental reward rate
-
-  """
-
-  def __init__(
-      self,
-      alpha_critic: float,
-      alpha_actor_learn: float,
-      alpha_actor_forget: float,
-  ):
-    self._alpha_critic = alpha_critic
-    self._alpha_actor_learn = alpha_actor_learn
-    self._alpha_actor_forget = alpha_actor_forget
-    self.new_sess()
-
-  def new_sess(self):
-    """Reset the agent for the beginning of a new session."""
-    self.theta = 0. * np.ones(2)
-    self.v = 0.5
-
-  def get_choice_probs(self) -> np.ndarray:
-    choice_probs = np.exp(self.theta) / np.sum(
-        np.exp(self.theta))
-    return choice_probs
-
-  def get_choice(self) -> int:
-    """Sample a choice, given the agent's current internal state."""
-
-    choice_probs = self.get_choice_probs()
-    choice = np.random.choice(2, p=choice_probs)
-    return choice
-
-  def update(self, choice: int, reward: int):
-    """Update the agent after one step of the task.
-
-    Args:
-      choice: The choice made by the agent. 0 or 1
-      reward: The reward received by the agent. 0 or 1
-    """
-    unchosen = 1 - choice  # Convert 0 to 1 or 1 to 0
-    # Actor learning
-    choice_probs = self.get_choice_probs()
-    self.theta[choice] = (1 - self._alpha_actor_forget) * self.theta[
-        choice
-    ] + self._alpha_actor_learn * (reward - self.v) * (1 - choice_probs[choice])
-    self.theta[unchosen] = (1 - self._alpha_actor_forget) * self.theta[
-        unchosen
-    ] - self._alpha_actor_learn * (reward - self.v) * (choice_probs[unchosen])
-
-    # Critic learing: V moves towards reward
-    self.v = (1 - self._alpha_critic) * self.v + self._alpha_critic * reward
-
-
-class AgentNetwork:
-  """A class that allows running a trained RNN as an agent.
-
-  Attributes:
-    make_network: A Haiku function that returns an RNN architecture
-    params: A set of Haiku parameters suitable for that architecture
-  """
-
-  def __init__(self,
-               make_network: Callable[[], hk.RNNCore],
-               params: hk.Params):
-
-    def step_network(xs: np.ndarray,
-                     state: hk.State) -> Tuple[np.ndarray, hk.State]:
-      core = make_network()
-      y_hat, new_state = core(xs, state)
-      return y_hat, new_state
-
-    def get_initial_state() -> hk.State:
-      core = make_network()
-      state = core.initial_state(1)
-      return state
-
-    model = hk.without_apply_rng(hk.transform(step_network))
-    state = hk.without_apply_rng(hk.transform(get_initial_state))
-
-    self._initial_state = state.apply(params)
-    self._model_fun = jax.jit(lambda xs, state: model.apply(params, xs, state))
-    self._xs = np.zeros((1, 2))
-    self.new_sess()
-
-  def new_sess(self):
-    self._state = self._initial_state
-
-  def get_choice_probs(self) -> np.ndarray:
-    output_logits, _ = self._model_fun(self._xs, self._state)
-    choice_probs = np.exp(output_logits[0]) / np.sum(
-        np.exp(output_logits[0]))
-    return choice_probs
-
-  def get_choice(self) -> Tuple[int, np.ndarray]:
-    choice_probs = self.get_choice_probs()
-    choice = np.random.choice(2, p=choice_probs)
-    return choice
-
-  def update(self, choice: int, reward: int):
-    self._xs = np.array([[choice, reward]])
-    _, self._state = self._model_fun(self._xs, self._state)
-
 ################
 # ENVIRONMENTS #
 ################
@@ -282,10 +171,8 @@ class BanditSession(NamedTuple):
   timeseries: np.ndarray
   n_trials: int
 
-Agent = Union[AgentQ, AgentLeakyActorCritic, AgentNetwork]
-Environment = Union[
-    EnvironmentBanditsFlips, EnvironmentBanditsDrift
-]
+Agent = Union[AgentQ]
+Environment = Union[EnvironmentBanditsFlips, EnvironmentBanditsDrift]
 
 def run_experiment(agent: Agent,
                    environment: Environment,
@@ -456,3 +343,43 @@ def show_total_reward_rate(experiment_list):
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
 ################################
+
+
+class HkCognitiveModel(hk.RNNCore):
+  """Cognitive model from Miller, Botvinick, and Brody, expressed in Haiku.
+
+  Three agents: Reward-seeking, habit, gamblers fallacy
+  """
+
+  def __init__(self, n_cs=4):
+    super(HkCognitiveModel, self).__init__()
+
+    # Haiku parameters
+    alpha_logit = hk.get_parameter(
+        'alpha_logit', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=1),
+    )
+    beta = hk.get_parameter(
+        'beta', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=2)
+    )
+
+    # Local parameters
+    self.alpha = 1 / (1 + jnp.exp(-alpha_logit))
+    self.beta_bias = beta
+
+  def __call__(self, inputs: jnp.array, prev_state: jnp.array):
+    prev_qs = prev_state
+    
+    choice = inputs[:, 0]  # shape: (batch_size, 1)
+    reward = inputs[:, 1]  # shape: (batch_size, 1)
+
+    new_qs = prev_qs
+    new_qs[:, choice] = (1-self.alpha) * prev_qs[:, choice] + self.alpha * reward
+    
+    # Compute output logits
+    choice_logits = self.beta * new_qs
+    
+    return choice_logits, new_qs
+
+  def initial_state(self, batch_size):
+    values = 0.5*jnp.ones([batch_size, 2])  # shape: (batch_size, n_actions)
+    return values
