@@ -261,7 +261,17 @@ def fit_model(
   if random_key is None:
     random_key = jax.random.PRNGKey(0)
 
-  # Train until either the fit converges or the error is less than epsilon
+  # Initialize the model
+  params, opt_state, losses = train_model(
+        model_fun,
+        dataset,
+        params=params,
+        opt_state=opt_state,
+        opt=optimizer,
+        n_steps=0,
+    )
+  
+  # Train until the loss stops going down
   converged = False
   loss = np.inf
   while not converged:
