@@ -4,6 +4,7 @@ import haiku as hk
 import numpy as np
 import jax
 import jax.numpy as jnp
+import matplotlib.pyplot as plt
 
 def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
   r"""Calculate KL divergence between given and standard gaussian distributions.
