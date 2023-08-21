@@ -1,3 +1,5 @@
+from typing import Iterable
+
 import haiku as hk
 import numpy as np
 import jax
