@@ -91,7 +91,7 @@ def nan_in_dict(d):
     return any(nan_in_dict(v) for v in d.values()) 
     
 
-def train_model(
+def fit_model(
     make_network: Callable[[], hk.RNNCore],
     training_dataset: DatasetRNN,
     optimizer: optax.GradientTransformation = optax.adam(1e-3),
