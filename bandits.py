@@ -345,7 +345,7 @@ def show_total_reward_rate(experiment_list):
 ################################
 
 
-class HkCognitiveModel(hk.RNNCore):
+class HkAgentQ(hk.RNNCore):
   """Cognitive model from Miller, Botvinick, and Brody, expressed in Haiku.
 
   Three agents: Reward-seeking, habit, gamblers fallacy
