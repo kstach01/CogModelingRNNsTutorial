@@ -5,8 +5,8 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
-class HkCompartmentalizedRNN(hk.RNNCore):
-  """Compartmentalized RNN."""
+class HkDisRNN(hk.RNNCore):
+  """Disentangled RNN."""
 
   def __init__(
       self,
