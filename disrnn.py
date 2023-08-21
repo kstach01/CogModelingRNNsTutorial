@@ -167,7 +167,7 @@ class HkDisRNN(hk.RNNCore):
 
 def plot_bottlenecks(params, sort_latents=True, obs_names=None):
   """Plot the bottleneck sigmas from an hk.CompartmentalizedRNN."""
-  params_disrnn = params['hk_compartmentalized_rnn']
+  params_disrnn = params['hk_dis_rnn']
   latent_dim = params_disrnn['latent_sigmas_unsquashed'].shape[0]
   obs_dim = params_disrnn['update_mlp_sigmas_unsquashed'].shape[0] - latent_dim
   
@@ -230,7 +230,7 @@ def plot_bottlenecks(params, sort_latents=True, obs_names=None):
   return fig
 
 def plot_update_rules(params, make_network):
-  """Generates visualizations of the update ruled of a HkCompartmentalizedRNN.
+  """Generates visualizations of the update ruled of a disRNN.
   """
 
   def step(xs, state):
