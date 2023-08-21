@@ -23,8 +23,8 @@ class AgentQ:
 
   def __init__(
       self,
-      alpha: float,  # Learning rate
-      beta: float,  # softmax temp
+      alpha: float=0.2,  # Learning rate
+      beta: float=3,  # softmax temp
   ):
     self._alpha = alpha
     self._beta = beta
