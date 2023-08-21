@@ -1,4 +1,8 @@
+from typing import Callable, NamedTuple, Tuple, Union
+
 import numpy as np
+import haiku as hk
+import jax
 
 ###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
