@@ -149,7 +149,7 @@ def fit_model(
     params = model.init(key1, sample_xs)
   # It an optimizer state has not been supplied, start optimizer from scratch
   if opt_state is None:
-    opt_state = opt.init(params)
+    opt_state = optimizer.init(params)
 
   def categorical_log_likelihood(
       labels: np.ndarray, output_logits: np.ndarray
@@ -205,7 +205,7 @@ def fit_model(
     loss, grads = jax.value_and_grad(compute_loss, argnums=0)(
         params, xs, ys, random_key
     )
-    grads, opt_state = opt.update(grads, opt_state)
+    grads, opt_state = optimizer.update(grads, opt_state)
     params = optax.apply_updates(params, clipped_grads)
     return loss, params, opt_state
 
