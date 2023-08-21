@@ -6,6 +6,8 @@ import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 
+from CogModelingRNNsTutorial import rnn_utils
+
 def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
   r"""Calculate KL divergence between given and standard gaussian distributions.
 
