@@ -241,8 +241,8 @@ def fit_model(
 
   # Check if anything has become NaN that should not be NaN
   if nan_in_dict(params):
-    raise ValueError('NaN in params')
     print(params)
+    raise ValueError('NaN in params')
   if len(training_loss) > 0 and np.isnan(training_loss[-1]):
     raise ValueError('NaN in loss')
 
