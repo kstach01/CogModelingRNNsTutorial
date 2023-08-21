@@ -356,15 +356,15 @@ class HkAgentQ(hk.RNNCore):
     super(HkAgentQ, self).__init__()
 
     # Haiku parameters
-    alpha_logit = hk.get_parameter(
-        'alpha_logit', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=1),
+    alpha_unsigmoid = hk.get_parameter(
+        'alpha_unsigmoid', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=1),
     )
     beta = hk.get_parameter(
         'beta', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=2)
     )
 
     # Local parameters
-    self.alpha = 1 / (1 + jnp.exp(-alpha_logit))
+    self.alpha = jax.nn.sigmoid(alpha_unsigmoid)
     self.beta_bias = beta
 
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
