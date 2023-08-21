@@ -222,8 +222,8 @@ def fit_model(
     # Log every 10th step
     if step % 10 == 9:
       training_loss.append(float(loss))
-      print((f'Step {step + 1} of {n_steps}; '
-             f'Loss: {loss:.2e}. '), end='\r')
+      print((f'\rStep {step + 1} of {n_steps}; '
+             f'Loss: {loss:.2e}. '), end='')
 
   # If we actually did any training, print final loss and make a nice plot
   if n_steps > 1 and do_plot:
