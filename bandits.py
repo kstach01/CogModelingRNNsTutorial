@@ -353,7 +353,7 @@ class HkAgentQ(hk.RNNCore):
   """
 
   def __init__(self, n_cs=4):
-    super(HkCognitiveModel, self).__init__()
+    super(HkAgentQ, self).__init__()
 
     # Haiku parameters
     alpha_logit = hk.get_parameter(
