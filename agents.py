@@ -102,7 +102,7 @@ class QAgentABFP:
     return self._q.copy()
 
 
-class QAgent:
+class QAgent(QAgentABFP):
   """A simple 2-parameter Q-Agent with learning rate and softmax parameter."""
 
   def __init__(
@@ -130,7 +130,7 @@ class QAgent:
     )
 
 
-class QAgent2:
+class QAgent2(QAgentABFP):
   """A more complex Q-Agent with an additional parameter(s)."""
 
   def __init__(
@@ -158,7 +158,7 @@ class QAgent2:
     )
 
 
-class QAgent3:
+class QAgent3(QAgentABFP):
   """Another more complex Q-Agent with an additional parameter(s)."""
 
   def __init__(
