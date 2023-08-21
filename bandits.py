@@ -93,10 +93,11 @@ class AgentNetwork:
   def new_sess(self):
     self._state = self._initial_state
 
+  @jax.jit
   def get_choice_probs(self) -> np.ndarray:
     output_logits, _ = self._model_fun(self._xs, self._state)
-    choice_probs = np.exp(output_logits[0]) / np.sum(
-        np.exp(output_logits[0]))
+    choice_probs = jnp.exp(output_logits[0]) / jnp.sum(
+        jnp.exp(output_logits[0]))
     return choice_probs
 
   def get_choice(self) -> Tuple[int, np.ndarray]:
@@ -104,8 +105,9 @@ class AgentNetwork:
     choice = np.random.choice(2, p=choice_probs)
     return choice
 
+  @jax.jit
   def update(self, choice: int, reward: int):
-    self._xs = np.array([[choice, reward]])
+    self._xs = jnp.array([[choice, reward]])
     _, self._state = self._model_fun(self._xs, self._state)
 
 
