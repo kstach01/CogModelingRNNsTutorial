@@ -48,9 +48,11 @@ class QAgentABFP:
       learning_rate: scalar learning rate
       beta_softmax: scalar softmax inverse temperature parameter.
       n_actions: number of actions (default=2)
-      q_init: initial value.
-      forgetting_param: how much q-values will decay toward the q_init on each update step (default=0)
-      perseveration_param: how much q-values will decay toward the q_init on each update step (default=0)
+      q_init: initial value (default=0.5).
+      forgetting_param: how much q-values will decay toward the q_init on each
+        update step (default=0)
+      perseveration_param: how much q-values will decay toward the q_init on
+        each update step (default=0)
     """
     self._learning_rate = learning_rate
     self._beta_softmax = beta_softmax
@@ -100,7 +102,7 @@ class QAgentABFP:
     return self._q.copy()
 
 
-class QAgent1:
+class QAgent:
   """A simple 2-parameter Q-Agent with learning rate and softmax parameter."""
 
   def __init__(
@@ -118,7 +120,7 @@ class QAgent1:
       n_actions: number of actions (default=2)
       q_init: initial value.
     """
-    super(QAgent1, self).__init__(
+    super(QAgent, self).__init__(
         learning_rate=learning_rate,
         beta_softmax=beta_softmax,
         n_actions=n_actions,
@@ -146,7 +148,7 @@ class QAgent2:
       n_actions: number of actions (default=2)
       q_init: initial value.
     """
-    super(QAgent1, self).__init__(
+    super(QAgent2, self).__init__(
         learning_rate=learning_rate,
         beta_softmax=beta_softmax,
         n_actions=n_actions,
@@ -154,7 +156,6 @@ class QAgent2:
         forgetting_param=1.,  # forgetting parameter turned on
         perseveration_param=0,
     )
-
 
 
 class QAgent3:
@@ -175,7 +176,7 @@ class QAgent3:
       n_actions: number of actions (default=2)
       q_init: initial value.
     """
-    super(QAgent1, self).__init__(
+    super(QAgent3, self).__init__(
         learning_rate=learning_rate,
         beta_softmax=beta_softmax,
         n_actions=n_actions,
