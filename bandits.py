@@ -276,9 +276,10 @@ class EnvironmentBanditsDrift:
 
 
 class BanditSession(NamedTuple):
+  """Holds data for a single session of a bandit task."""
   choices: np.ndarray
   rewards: np.ndarray
-  reward_probs: np.ndarray
+  timeseries: np.ndarray
   n_trials: int
 
 Agent = Union[AgentQ, AgentLeakyActorCritic, AgentNetwork]
@@ -316,26 +317,27 @@ def run_experiment(agent: Agent,
     choices[trial] = choice
     rewards[trial] = reward
 
-  experiment = BanditSession(choices=choices,
+  experiment = BanditSession(n_trials=n_trials,
+                             choices=choices,
                             rewards=rewards,
-                            n_trials=n_trials,
-                            reward_probs=reward_probs)
+                            timeseries=reward_probs)
   return experiment
 
-def plot_experiment(experiment: BanditSession):
-  """Creates a figure showing data from a behavioral session.
-
-  Args:
-    experiment: A session of data to plot
+def plot_session(choices: np.ndarray,
+                    rewards: np.ndarray,
+                    n_trials: int,
+                    timeseries: np.ndarray,
+                timeseries_name: str):
+  """Creates a figure showing data from a single behavioral session of the bandit task.
   """
 
-  choose_high = experiment.choices == 1
-  choose_low = experiment.choices == 0
-  rewarded = experiment.rewards == 1
+  choose_high = choices == 1
+  choose_low = choices == 0
+  rewarded = rewards == 1
 
   # Make the plot
   plt.subplots(figsize=(10, 3))
-  plt.plot(experiment.reward_probs)
+  plt.plot(timeseries)
 
   # Rewarded high
   plt.scatter(
@@ -374,7 +376,7 @@ def plot_experiment(experiment: BanditSession):
       marker='|')
 
   plt.xlabel('Trial')
-  plt.ylabel('Probability')
+  plt.ylabel(timeseries_name)
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
 ################################
