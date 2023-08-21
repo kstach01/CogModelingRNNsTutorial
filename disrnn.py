@@ -5,6 +5,22 @@ import numpy as np
 import jax
 import jax.numpy as jnp
 
+def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
+  r"""Calculate KL divergence between given and standard gaussian distributions.
+
+  KL(p, q) = H(p, q) - H(p) = -\int p(x)log(q(x))dx - -\int p(x)log(p(x))dx
+          = 0.5 * [log(|s2|/|s1|) - 1 + tr(s1/s2) + (m1-m2)^2/s2]
+          = 0.5 * [-log(|s1|) - 1 + tr(s1) + m1^2] (if m2 = 0, s2 = 1)
+  Args:
+    mean: mean vector of the first distribution
+    var: diagonal vector of covariance matrix of the first distribution
+
+  Returns:
+    A scalar representing KL divergence of the two Gaussian distributions.
+  """
+
+  return 0.5 * jnp.sum(-jnp.log(var) - 1.0 + var + jnp.square(mean), axis=-1)
+
 class HkDisRNN(hk.RNNCore):
   """Disentangled RNN."""
 
