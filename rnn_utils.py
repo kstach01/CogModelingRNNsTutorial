@@ -213,7 +213,7 @@ def fit_model(
   for step in jnp.arange(n_steps):
     random_key, key1, key2 = jax.random.split(random_key, 3)
     # Train on training data
-    xs, ys = next(training_dataset)
+    xs, ys = next(dataset)
     loss, params, opt_state = train_step(params, opt_state, xs, ys, key2)
     # Log every 10th step
     if step % 10 == 9:
