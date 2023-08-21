@@ -376,7 +376,7 @@ class HkAgentQ(hk.RNNCore):
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
     new_qs = prev_qs
-    new_qs = new_qs.at[choice].set((1-self.alpha) * prev_qs[:, choice] + self.alpha * reward)
+    new_qs = new_qs.at[choice].set((1-self.alpha) * prev_qs[:, choice] + self.alpha * reward[:,0])
     
     # Compute output logits
     choice_logits = self.beta * new_qs
