@@ -286,7 +286,7 @@ Environment = Union[
 
 def run_experiment(agent: Agent,
                    environment: Environment,
-                   n_steps: int) -> BanditSession:
+                   n_trials: int) -> BanditSession:
   """Runs a behavioral session from a given agent and environment.
 
   Args:
