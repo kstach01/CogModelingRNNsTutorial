@@ -286,6 +286,10 @@ def fit_model(
     loss_new = losses['training_loss'][-1]
     # Declare "converged" if loss has not improved very much
     converged = loss_new > loss * (1 - convergence_thresh)
+    if converged:
+      print('Model Converged!')
+    else:
+      print('Model not yet converged. Going back for another round of fitting')
     loss = loss_new
       
   return params, loss
