@@ -1,7 +1,7 @@
 import haiku as hk
 import numpy as np
 import jax
-importjax.numpy as jnp
+import jax.numpy as jnp
 
 class HkCompartmentalizedRNN(hk.RNNCore):
   """Compartmentalized RNN."""
