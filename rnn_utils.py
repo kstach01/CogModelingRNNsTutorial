@@ -125,7 +125,7 @@ def fit_model(
     losses: Losses on both datasets
   """
 
-  sample_xs, _ = next(training_dataset)  # Get a sample input, for shape
+  sample_xs, _ = next(dataset)  # Get a sample input, for shape
 
   # Haiku, step one: Define the batched network
   def unroll_network(xs):
