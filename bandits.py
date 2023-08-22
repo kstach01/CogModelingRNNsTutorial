@@ -42,11 +42,12 @@ class AgentQ:
     self._beta = beta
     self._n_actions = n_actions
     self._forgetting_rate = forgetting_rate
+    self._q_init = 0.5
     self.new_sess()
 
   def new_sess(self):
     """Reset the agent for the beginning of a new session."""
-    self._q = 0.5 * np.ones(self._n_actions)
+    self._q = self._q_init * np.ones(self._n_actions)
 
   def get_choice_probs(self) -> np.ndarray:
     """Compute the choice probabilities as softmax over q."""
@@ -69,16 +70,20 @@ class AgentQ:
       choice: The choice made by the agent. 0 or 1
       reward: The reward received by the agent. 0 or 1
     """
-    prev_qs = self._q
-    prev_qs = (1-self._forgetting_rate) * prev_qs
-    self._q[choice] = (1 - self._alpha) * prev_qs[choice] + self._alpha * reward
+    # Decay q-values toward the initial value.
+    self._q = ((1-self._forgetting_rate) * self._q +
+               self._forgetting_rate * self._q_init)
+
+    # Update chosen q for chosen action with observed reward.
+    self._q[choice] = (1 - self._alpha) * self._q[choice] + self._alpha * reward
 
   @property
   def q(self):
-    # Calling AgentQ.q will let you see the current q-values, but you will not
-    # be able to modify them directly.
+    # This establishes q as an externally visible attribute of the agent.
+    # For agent = AgentQ(...), you can view the q values with agent.q; however,
+    # you will not be able to modify them directly because you will be viewing
+    # a copy.
     return self._q.copy()
->>>>>>> Stashed changes
 
 
 class AgentNetwork:
