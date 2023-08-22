@@ -177,7 +177,7 @@ def plot_bottlenecks(params, sort_latents=True, obs_names=None):
   params_disrnn = params['hk_dis_rnn']
   latent_dim = params_disrnn['latent_sigmas_unsquashed'].shape[0]
   obs_dim = params_disrnn['update_mlp_sigmas_unsquashed'].shape[0] - latent_dim
-  
+
   if obs_names is None:
     if obs_dim == 2:
       obs_names = ['Choice', 'Reward']
@@ -186,7 +186,6 @@ def plot_bottlenecks(params, sort_latents=True, obs_names=None):
     else: 
       obs_names = np.arange(1, obs_dim+1)
 
-  
   latent_sigmas = 2 * jax.nn.sigmoid(
       jnp.array(params_disrnn['latent_sigmas_unsquashed'])
   )
@@ -202,15 +201,13 @@ def plot_bottlenecks(params, sort_latents=True, obs_names=None):
         params_disrnn['latent_sigmas_unsquashed']
     )
     latent_sigmas = latent_sigmas[latent_sigma_order]
-    
+
     update_sigma_order = np.concatenate(
         (np.arange(0, obs_dim, 1), obs_dim + latent_sigma_order), axis=0
     )
     update_sigmas = update_sigmas[latent_sigma_order, :]
     update_sigmas = update_sigmas[:, update_sigma_order]
-  
-    
-    
+
   latent_names = np.arange(1, latent_dim + 1)
   fig = plt.subplots(1, 2, figsize=(10, 5))
   plt.subplot(1, 2, 1)
