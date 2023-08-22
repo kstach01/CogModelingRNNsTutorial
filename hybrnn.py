@@ -15,10 +15,10 @@ class BiRNN(hk.RNNCore):
 
     super().__init__()
 
-    self._hs = rl_params['s']
-    self._vs = rl_params['s']
-    self._ho = rl_params['o']
-    self._vo = rl_params['o']
+    # self._hs = rl_params['s']
+    # self._vs = rl_params['s']
+    # self._ho = rl_params['o']
+    # self._vo = rl_params['o']
 
     self._n_actions = network_params['n_actions']
     self._hidden_size = network_params['hidden_size']
@@ -42,10 +42,10 @@ class BiRNN(hk.RNNCore):
 
     inputs = jnp.concatenate(
         [pre_act_val[:, jnp.newaxis], reward[:, jnp.newaxis]], axis=-1)
-    if self._vo:  # "o" = output -> feed previous output back in
-      inputs = jnp.concatenate([inputs, value], axis=-1)
-    if self._vs:  # "s" = state -> feed previous hidden state back in
-      inputs = jnp.concatenate([inputs, state], axis=-1)
+    # if self._vo:  # "o" = output -> feed previous output back in
+    #   inputs = jnp.concatenate([inputs, value], axis=-1)
+    # if self._vs:  # "s" = state -> feed previous hidden state back in
+    #   inputs = jnp.concatenate([inputs, state], axis=-1)
 
     next_state = jax.nn.tanh(hk.Linear(self._hidden_size)(inputs))
 
@@ -57,10 +57,10 @@ class BiRNN(hk.RNNCore):
   def _habit_rnn(self, state, habit, action):
 
     inputs = action
-    if self._ho:  # "o" = output -> feed previous output back in
-      inputs = jnp.concatenate([inputs, habit], axis=-1)
-    if self._hs:  # "s" = state -> feed previous hidden state back in
-      inputs = jnp.concatenate([inputs, state], axis=-1)
+    # if self._ho:  # "o" = output -> feed previous output back in
+    #   inputs = jnp.concatenate([inputs, habit], axis=-1)
+    # if self._hs:  # "s" = state -> feed previous hidden state back in
+    #   inputs = jnp.concatenate([inputs, state], axis=-1)
 
     next_state = jax.nn.tanh(hk.Linear(self._hidden_size)(inputs))
     next_habit = hk.Linear(self._n_actions)(next_state)
