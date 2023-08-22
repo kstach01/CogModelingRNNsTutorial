@@ -1,6 +1,6 @@
 """Environments + agents for 2-armed bandit task."""
 # pylint: disable=line-too-long
-from typing import Callable, NamedTuple, Tuple, Union, Optional
+from typing import Callable, NamedTuple, Tuple, Union, Optional, List
 
 import haiku as hk
 import jax
@@ -372,7 +372,8 @@ def run_experiment(agent: Agent,
 def plot_session(choices: np.ndarray,
                  rewards: np.ndarray,
                  timeseries: np.ndarray,
-                 timeseries_name: str):
+                 timeseries_name: str,
+                 labels: Optional[List[str]] = None):
   """Plot data from a single behavioral session of the bandit task."""
 
   choose_high = choices == 1
@@ -384,43 +385,45 @@ def plot_session(choices: np.ndarray,
 
   # Make the plot
   plt.subplots(figsize=(10, 3))
-  plt.plot(timeseries)
+  plt.plot(timeseries, label=labels)
+  plt.legend()
 
-  # Rewarded high
-  plt.scatter(
-      np.argwhere(choose_high & rewarded),
-      y_high * np.ones(np.sum(choose_high & rewarded)),
-      color='green',
-      marker=3)
-  plt.scatter(
-      np.argwhere(choose_high & rewarded),
-      y_high * np.ones(np.sum(choose_high & rewarded)),
-      color='green',
-      marker='|')
-  # Omission high
-  plt.scatter(
-      np.argwhere(choose_high & 1 - rewarded),
-      y_high * np.ones(np.sum(choose_high & 1 - rewarded)),
-      color='red',
-      marker='|')
+  if choices.max() <= 1:
+    # Rewarded high
+    plt.scatter(
+        np.argwhere(choose_high & rewarded),
+        y_high * np.ones(np.sum(choose_high & rewarded)),
+        color='green',
+        marker=3)
+    plt.scatter(
+        np.argwhere(choose_high & rewarded),
+        y_high * np.ones(np.sum(choose_high & rewarded)),
+        color='green',
+        marker='|')
+    # Omission high
+    plt.scatter(
+        np.argwhere(choose_high & 1 - rewarded),
+        y_high * np.ones(np.sum(choose_high & 1 - rewarded)),
+        color='red',
+        marker='|')
 
-  # Rewarded low
-  plt.scatter(
-      np.argwhere(choose_low & rewarded),
-      y_low * np.ones(np.sum(choose_low & rewarded)),
-      color='green',
-      marker='|')
-  plt.scatter(
-      np.argwhere(choose_low & rewarded),
-      y_low * np.ones(np.sum(choose_low & rewarded)),
-      color='green',
-      marker=2)
-  # Omission Low
-  plt.scatter(
-      np.argwhere(choose_low & 1 - rewarded),
-      y_low * np.ones(np.sum(choose_low & 1 - rewarded)),
-      color='red',
-      marker='|')
+    # Rewarded low
+    plt.scatter(
+        np.argwhere(choose_low & rewarded),
+        y_low * np.ones(np.sum(choose_low & rewarded)),
+        color='green',
+        marker='|')
+    plt.scatter(
+        np.argwhere(choose_low & rewarded),
+        y_low * np.ones(np.sum(choose_low & rewarded)),
+        color='green',
+        marker=2)
+    # Omission Low
+    plt.scatter(
+        np.argwhere(choose_low & 1 - rewarded),
+        y_low * np.ones(np.sum(choose_low & 1 - rewarded)),
+        color='red',
+        marker='|')
 
   plt.xlabel('Trial')
   plt.ylabel(timeseries_name)
