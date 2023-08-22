@@ -1,5 +1,4 @@
-"""Define bi-RNNs.
-"""
+"""Define hybRNNs."""
 from typing import Optional
 
 import haiku as hk
@@ -10,7 +9,7 @@ RNNState = jnp.array
 
 
 class BiRNN(hk.RNNCore):
-  """A bifurcating RNN: "habit" processes action sequences; "value" rewards."""
+  """A hybrid RNN: "habit" processes action choices; "value" processes rewards."""
 
   def __init__(self, rl_params, network_params, init_value=0.5):
 
