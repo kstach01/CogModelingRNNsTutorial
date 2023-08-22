@@ -28,6 +28,7 @@ class AgentQ:
       self,
       alpha: float = 0.2,
       beta: float = 3.,
+      forgetting_rate: float = 0.,
       n_actions: int = 2,
       forgetting_rate: float = 0.):
     """Update the agent after one step of the task.
@@ -39,6 +40,7 @@ class AgentQ:
       forgetting_rate: rate at which q values decay toward the initial values
     """
     self._alpha = alpha
+    self._forgetting_rate = forgetting_rate
     self._beta = beta
     self._n_actions = n_actions
     self._forgetting_rate = forgetting_rate
@@ -69,9 +71,12 @@ class AgentQ:
       choice: The choice made by the agent. 0 or 1
       reward: The reward received by the agent. 0 or 1
     """
-    prev_qs = self._q
+<<<<<<< Updated upstream
+    prev_qs = self.q
     prev_qs = (1-self._forgetting_rate) * prev_qs
-    self._q[choice] = (1 - self._alpha) * prev_qs[choice] + self._alpha * reward
+    self.q[choice] = (1 - self._alpha) * prev_qs[choice] + self._alpha * reward
+=======
+    self._q[choice] = (1 - self._alpha) * self._q[choice] + self._alpha * reward
 
   @property
   def q(self):
