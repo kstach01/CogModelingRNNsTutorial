@@ -86,7 +86,7 @@ class AgentNetwork:
     model = hk.transform(step_network)
     state = hk.transform(get_initial_state)
 
-    self._initial_state = state.apply(params)
+    self._initial_state = state.apply(params, key)
     self._model_fun = jax.jit(lambda xs, state: model.apply(params, key, xs, state))
     self._xs = np.zeros((1, 2))
     self.new_sess()
