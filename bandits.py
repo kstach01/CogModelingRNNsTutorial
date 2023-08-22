@@ -69,7 +69,8 @@ class AgentNetwork:
 
   def __init__(self,
                make_network: Callable[[], hk.RNNCore],
-               params: hk.Params):
+               params: hk.Params,
+               n_actions=2):
 
     def step_network(xs: np.ndarray,
                      state: hk.State) -> Tuple[np.ndarray, hk.State]:
@@ -89,6 +90,7 @@ class AgentNetwork:
     self._initial_state = state.apply(params, key)
     self._model_fun = jax.jit(lambda xs, state: model.apply(params, key, xs, state))
     self._xs = np.zeros((1, 2))
+    self._n_actions = n_actions
     self.new_sess()
 
   def new_sess(self):
@@ -97,8 +99,9 @@ class AgentNetwork:
   def get_choice_probs(self) -> np.ndarray:
     output_logits, _ = self._model_fun(self._xs, self._state)
     output_logits = np.array(output_logits)
-    choice_probs = np.exp(output_logits[0]) / np.sum(
-        np.exp(output_logits[0]))
+    output_logits = output_logits[0][:[:n_actions]
+    choice_probs = np.exp(output_logits) / np.sum(
+        np.exp(output_logits))
     return choice_probs
 
   def get_choice(self) -> Tuple[int, np.ndarray]:
