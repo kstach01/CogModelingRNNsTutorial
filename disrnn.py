@@ -82,7 +82,7 @@ class HkDisRNN(hk.RNNCore):
     self._latent_inits = hk.get_parameter(
         'latent_inits',
         (latent_size,),
-        init=hk.initializers.RandomUniform(minval=-1, maxval=1),
+        init=hk.initializers.RandomUniform(minval=-0.01, maxval=0.01),
     )
 
   def __call__(
