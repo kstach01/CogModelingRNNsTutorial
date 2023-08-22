@@ -334,7 +334,8 @@ def eval_model(
 
   model = hk.transform(unroll_network)
   key = jax.random.PRNGKey(np.random.randint(2**32))
-  y_hats, states = jax.jit(model.apply(params, key, xs))
+  apply = jax.jit(model.apply)
+  y_hats, states = apply(params, key, xs)
 
   return np.asarray(y_hats), states
 
