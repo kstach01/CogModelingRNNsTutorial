@@ -82,11 +82,12 @@ class AgentNetwork:
       state = core.initial_state(1)
       return state
 
-    model = hk.without_apply_rng(hk.transform(step_network))
-    state = hk.without_apply_rng(hk.transform(get_initial_state))
+    key = jax.random.PRNGKey(0)
+    model = hk.transform(step_network)
+    state = hk.transform(get_initial_state)
 
     self._initial_state = state.apply(params)
-    self._model_fun = jax.jit(lambda xs, state: model.apply(params, xs, state))
+    self._model_fun = jax.jit(lambda xs, state: model.apply(params, key, xs, state))
     self._xs = np.zeros((1, 2))
     self.new_sess()
 
