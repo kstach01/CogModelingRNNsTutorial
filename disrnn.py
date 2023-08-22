@@ -276,6 +276,7 @@ def plot_update_rules(params, make_network):
         _, next_state = step_hk(
             params, key, observation, state
         )
+        next_state = np.array(next_state)
         delta_states[s_i] = next_state[0, unit_i]  # - state[0, unit_i]
 
       plt.plot(state_bins, delta_states, color=colors[1])
@@ -319,6 +320,7 @@ def plot_update_rules(params, make_network):
           state[0, unit_i] = state_bins[s_i]
           state[0, unit_input] = state_bins[si_i]
           _, next_state = step_hk(params, key, observation, state)
+          next_state = np.array(next_state)
           delta_states[s_i] = next_state[0, unit_i]
 
         plt.plot(state_bins, delta_states, color=colors[si_i])
