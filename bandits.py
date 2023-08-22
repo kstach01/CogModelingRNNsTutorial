@@ -347,7 +347,7 @@ def run_experiment(agent: Agent,
   """
   choices = np.zeros(n_trials)
   rewards = np.zeros(n_trials)
-  reward_probs = np.zeros((n_trials, 2))
+  reward_probs = np.zeros((n_trials, environment.n_actions))
 
   for trial in np.arange(n_trials):
     # First record environment reward probs
