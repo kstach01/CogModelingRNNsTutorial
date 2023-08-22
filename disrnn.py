@@ -1,13 +1,15 @@
+"""Utility functions for disentangled RNNs."""
 from typing import Iterable, Callable, Any
 
 import haiku as hk
-import numpy as np
 import jax
 import jax.numpy as jnp
 import matplotlib as mpl
 import matplotlib.pyplot as plt
+import numpy as np
 
 from CogModelingRNNsTutorial import rnn_utils
+
 
 def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
   r"""Calculate KL divergence between given and standard gaussian distributions.
@@ -24,6 +26,7 @@ def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
   """
 
   return 0.5 * jnp.sum(-jnp.log(var) - 1.0 + var + jnp.square(mean), axis=-1)
+
 
 class HkDisRNN(hk.RNNCore):
   """Disentangled RNN."""

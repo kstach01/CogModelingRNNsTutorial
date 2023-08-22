@@ -1,16 +1,19 @@
+"""Environments + agents for 2-armed bandit task."""
+# pylint: disable=line-too-long
 from typing import Callable, NamedTuple, Tuple, Union, Optional
 
-import numpy as np
 import haiku as hk
+import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
-import jax
+import numpy as np
 
 from CogModelingRNNsTutorial.rnn_utils import DatasetRNN
 
 ###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
 ###################################
+
 
 class AgentQ:
   """An agent that runs simple Q-learning for the y-maze tasks.
@@ -19,32 +22,40 @@ class AgentQ:
     alpha: The agent's learning rate
     beta: The agent's softmax temperature
     q: The agent's current estimate of the reward probability on each arm
-
   """
 
   def __init__(
       self,
-      alpha: float=0.2,  # Learning rate
-      beta: float=3,  # softmax temp
-  ):
+      alpha: float = 0.2,
+      beta: float = 3,
+      n_actions: int = 2,
+      ):
+    """Update the agent after one step of the task.
+
+    Args:
+      alpha: scalar learning rate
+      beta: scalar softmax inverse temperature parameter.
+      n_actions: number of actions (default=2)
+    """
     self._alpha = alpha
     self._beta = beta
+    self._n_actions = n_actions
     self.new_sess()
 
   def new_sess(self):
     """Reset the agent for the beginning of a new session."""
-    self.q = 0.5 * np.ones(2)
+    self.q = 0.5 * np.ones(self._n_actions)
 
   def get_choice_probs(self) -> np.ndarray:
+    """Compute the choice probabilities as softmax over q."""
     choice_probs = np.exp(self._beta * self.q) / np.sum(
         np.exp(self._beta * self.q))
     return choice_probs
 
   def get_choice(self) -> int:
     """Sample a choice, given the agent's current internal state."""
-
     choice_probs = self.get_choice_probs()
-    choice = np.random.choice(2, p=choice_probs)
+    choice = np.random.choice(self._n_actions, p=choice_probs)
     return choice
 
   def update(self,
@@ -60,7 +71,7 @@ class AgentQ:
 
 
 class AgentNetwork:
-  """A class that allows running a trained RNN as an agent.
+  """A class that allows running a pretrained RNN as an agent.
 
   Attributes:
     make_network: A Haiku function that returns an RNN architecture
@@ -70,33 +81,54 @@ class AgentNetwork:
   def __init__(self,
                make_network: Callable[[], hk.RNNCore],
                params: hk.Params,
-               n_actions=2):
+               n_actions: int = 2):
+    """Initialize the agent network.
+    
+    Args: 
+      make_network: function that instantiates a callable haiku network object
+      params: parameters for the network
+      n_actions: number of permitted actions (default = 2)
+    """
 
-    def step_network(xs: np.ndarray,
-                     state: hk.State) -> Tuple[np.ndarray, hk.State]:
+    def _step_network(xs: np.ndarray,
+                      state: hk.State) -> Tuple[np.ndarray, hk.State]:
+      """Apply one step of the network.
+      
+      Args:
+        xs: array containing network inputs
+        state: previous state of the hidden units of the RNN model.
+        
+      Returns:
+        y_hat: output of RNN
+        new_state: state of the hidden units of the RNN model
+      """
       core = make_network()
       y_hat, new_state = core(xs, state)
       return y_hat, new_state
 
-    def get_initial_state() -> hk.State:
+    def _get_initial_state() -> hk.State:
+      """Get the initial state of the hidden units of RNN model."""
       core = make_network()
       state = core.initial_state(1)
       return state
 
     key = jax.random.PRNGKey(0)
-    model = hk.transform(step_network)
-    state = hk.transform(get_initial_state)
+    model = hk.transform(_step_network)
+    state = hk.transform(_get_initial_state)
 
     self._initial_state = state.apply(params, key)
-    self._model_fun = jax.jit(lambda xs, state: model.apply(params, key, xs, state))
+    self._model_fun = jax.jit(
+        lambda xs, state: model.apply(params, key, xs, state))
     self._xs = np.zeros((1, 2))
     self._n_actions = n_actions
     self.new_sess()
 
   def new_sess(self):
+    """Reset the network for the beginning of a new session."""
     self._state = self._initial_state
 
   def get_choice_probs(self) -> np.ndarray:
+    """Predict the choice probabilities as a softmax over output logits."""
     output_logits, _ = self._model_fun(self._xs, self._state)
     output_logits = np.array(output_logits)
     output_logits = output_logits[0][:self._n_actions]
@@ -105,8 +137,9 @@ class AgentNetwork:
     return choice_probs
 
   def get_choice(self) -> Tuple[int, np.ndarray]:
+    """Sample choice."""
     choice_probs = self.get_choice_probs()
-    choice = np.random.choice(2, p=choice_probs)
+    choice = np.random.choice(self._n_actions, p=choice_probs)
     return choice
 
   def update(self, choice: int, reward: int):
@@ -119,14 +152,15 @@ class AgentNetwork:
 # ENVIRONMENTS #
 ################
 
+
 class EnvironmentBanditsFlips:
-  # An environment for a two-armed bandit RL task, with reward probabilities that flip in blocks
+  """Env for 2-armed bandit task with with reward probs that flip in blocks."""
 
   def __init__(
       self,
-      block_flip_prob: float=0.02,
-      reward_prob_high: float=0.8,
-      reward_prob_low: float=0.2,
+      block_flip_prob: float = 0.02,
+      reward_prob_high: float = 0.8,
+      reward_prob_low: float = 0.2,
   ):
     # Assign the input parameters as properties
     self._block_flip_prob = block_flip_prob
@@ -138,18 +172,18 @@ class EnvironmentBanditsFlips:
     self.new_block()
 
   def new_block(self):
+    """Flip the reward probabilities for a new block."""
     # Flip the block
     self._block = 1 - self._block
     # Set the reward probabilites
     if self._block == 1:
-      self.reward_probs = [self._reward_prob_high,
-                                   self._reward_prob_low]
+      self.reward_probs = [self._reward_prob_high, self._reward_prob_low]
     else:
-      self.reward_probs = [self._reward_prob_low,
-                                   self._reward_prob_high]
+      self.reward_probs = [self._reward_prob_low, self._reward_prob_high]
 
   def step(self, choice):
-    # Choose the reward probability associated with the choice that the agent made
+    """Step the model forward given chosen action."""
+    # Choose the reward probability associated with agent's choice
     reward_prob_trial = self.reward_probs[choice]
 
     # Sample a reward with this probability
@@ -166,8 +200,8 @@ class EnvironmentBanditsFlips:
 class EnvironmentBanditsDrift:
   """Environment for a drifting two-armed bandit task.
 
-  Reward probabilities on each arm are sampled randomly between 0 and
-  1. On each trial, gaussian random noise is added to each.
+  Reward probabilities on each arm are sampled randomly between 0 and 1. On each
+  trial, gaussian random noise is added to each.
 
   Attributes:
     sigma: A float, between 0 and 1, giving the magnitude of the drift
@@ -177,11 +211,12 @@ class EnvironmentBanditsDrift:
   def __init__(self,
                sigma: float,
                ):
-
+    """Initialize the environment."""
     # Check inputs
     if sigma < 0:
-      msg = ('sigma was {}, but must be greater than 0')
-      raise ValueError(msg.format(sigma))
+      msg = f'Argument sigma but must be greater than 0. Found: {sigma}.'
+      raise ValueError(msg)
+
     # Initialize persistent properties
     self._sigma = sigma
 
@@ -232,6 +267,7 @@ class BanditSession(NamedTuple):
 Agent = Union[AgentQ, AgentNetwork]
 Environment = Union[EnvironmentBanditsFlips, EnvironmentBanditsDrift]
 
+
 def run_experiment(agent: Agent,
                    environment: Environment,
                    n_trials: int) -> BanditSession:
@@ -240,7 +276,7 @@ def run_experiment(agent: Agent,
   Args:
     agent: An agent object
     environment: An environment object
-    n_steps: The number of steps in the session you'd like to generate
+    n_trials: The number of steps in the session you'd like to generate
 
   Returns:
     experiment: A BanditSession holding choices and rewards from the session
@@ -264,18 +300,17 @@ def run_experiment(agent: Agent,
 
   experiment = BanditSession(n_trials=n_trials,
                              choices=choices,
-                            rewards=rewards,
-                            timeseries=reward_probs)
+                             rewards=rewards,
+                             timeseries=reward_probs)
   return experiment
 
 
 def plot_session(choices: np.ndarray,
-                    rewards: np.ndarray,
-                    n_trials: int,
-                    timeseries: np.ndarray,
-                timeseries_name: str):
-  """Creates a figure showing data from a single behavioral session of the bandit task.
-  """
+                 rewards: np.ndarray,
+                 n_trials: int,
+                 timeseries: np.ndarray,
+                 timeseries_name: str):
+  """Plot data from a single behavioral session of the bandit task."""
 
   choose_high = choices == 1
   choose_low = choices == 0
@@ -350,7 +385,7 @@ def create_dataset(agent: Agent,
   xs = np.zeros((n_trials_per_session, n_sessions, 2))
   ys = np.zeros((n_trials_per_session, n_sessions, 1))
   experiment_list = []
-    
+
   for sess_i in np.arange(n_sessions):
     experiment = run_experiment(agent, environment, n_trials_per_session)
     experiment_list.append(experiment)
@@ -363,29 +398,35 @@ def create_dataset(agent: Agent,
   dataset = DatasetRNN(xs, ys, batch_size)
   return dataset, experiment_list
 
+
 ###############
 # DIAGNOSTICS #
 ###############
 
+
 def show_valuemetric(experiment_list):
-    
+
   reward_prob_bins = np.linspace(-1,1,50)
   n_left = np.zeros(len(reward_prob_bins)-1)
   n_right = np.zeros(len(reward_prob_bins)-1)
-  
+
   for sessdata in experiment_list:
-    reward_prob_diff = sessdata.timeseries[:,0] - sessdata.timeseries[:,1]
-    for reward_prob_i in range(len(n_left)): 
-      trials_in_bin = np.logical_and((reward_prob_bins[reward_prob_i] < reward_prob_diff) , (reward_prob_diff < reward_prob_bins[reward_prob_i+1]))
-      n_left[reward_prob_i] += np.sum(np.logical_and(trials_in_bin, sessdata.choices == 0.))
-      n_right[reward_prob_i] += np.sum(np.logical_and(trials_in_bin, sessdata.choices == 1.))
-  
+    reward_prob_diff = sessdata.timeseries[:, 0] - sessdata.timeseries[:, 1]
+    for reward_prob_i in range(len(n_left)):
+      trials_in_bin = np.logical_and(
+          (reward_prob_bins[reward_prob_i] < reward_prob_diff) ,
+          (reward_prob_diff < reward_prob_bins[reward_prob_i+1]))
+      n_left[reward_prob_i] += np.sum(
+          np.logical_and(trials_in_bin, sessdata.choices == 0.))
+      n_right[reward_prob_i] += np.sum(
+          np.logical_and(trials_in_bin, sessdata.choices == 1.))
+
   choice_probs = n_left / (n_left + n_right)
-  
+
   xs = reward_prob_bins[:-1] - (reward_prob_bins[1]-reward_prob_bins[0])/2
   ys = choice_probs
   plt.plot(xs, ys)
-  plt.ylim((0,1))
+  plt.ylim((0, 1))
   plt.xlabel('Difference in Reward Probability (left - right)')
   plt.ylabel('Proportion of Leftward Choices')
 
@@ -399,7 +440,7 @@ def show_total_reward_rate(experiment_list):
     trials += sessdata.n_trials
 
   print('Total Reward Rate is:', 100*rewards/trials, '%')
-    
+
 
 ################################
 # FITTING FUNCTIONS FOR AGENTS #
@@ -409,7 +450,7 @@ def show_total_reward_rate(experiment_list):
 class HkAgentQ(hk.RNNCore):
   """Vanilla Q-Learning model, expressed in Haiku.
 
-  Updates value of the chosen action using a delta rule with step-size parameter Alpha. 
+  Updates value of chosen action using a delta rule with step-size param alpha. 
   Does not update value of the unchosen action.
   Selects actions using a softmax decision rule with parameter Beta.
   """
@@ -419,7 +460,8 @@ class HkAgentQ(hk.RNNCore):
 
     # Haiku parameters
     alpha_unsigmoid = hk.get_parameter(
-        'alpha_unsigmoid', (1,), init=hk.initializers.RandomUniform(minval=-1, maxval=1),
+        'alpha_unsigmoid', (1,),
+        init=hk.initializers.RandomUniform(minval=-1, maxval=1),
     )
     beta = hk.get_parameter(
         'beta', (1,), init=hk.initializers.RandomUniform(minval=0, maxval=2)
@@ -431,18 +473,18 @@ class HkAgentQ(hk.RNNCore):
 
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
     prev_qs = prev_state
-    
+
     choice = inputs[:, 0]  # shape: (batch_size, 1)
     reward = inputs[:, 1]  # shape: (batch_size, 1)
 
-    choice_onehot = jax.nn.one_hot(choice, num_classes=2) # shape: (batch_size, 2)
-    chosen_value = jnp.sum(prev_qs * choice_onehot, axis=1) # shape: (batch_size)
-    deltas = reward - chosen_value # shape: (batch_size)
+    choice_onehot = jax.nn.one_hot(choice, num_classes=2)  # shape: (batch_size, 2)
+    chosen_value = jnp.sum(prev_qs * choice_onehot, axis=1)  # shape: (batch_size)
+    deltas = reward - chosen_value  # shape: (batch_size)
     new_qs = prev_qs + self.alpha * choice_onehot * jnp.expand_dims(deltas, -1)
 
     # Compute output logits
     choice_logits = self.beta * new_qs
-    
+
     return choice_logits, new_qs
 
   def initial_state(self, batch_size):
