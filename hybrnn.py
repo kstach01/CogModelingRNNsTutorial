@@ -23,7 +23,6 @@ class BiRNN(hk.RNNCore):
     self._n_actions = network_params.n_actions
     self._hidden_size = network_params.hidden_size
     self._final_activation_fn = network_params.final_activation_fn
-    self.beta = rl_params.beta
 
     init = hk.initializers.RandomNormal(stddev=1, mean=1)
     self._init_value_v = hk.get_parameter('init_value_v', (1,), init=init)
@@ -81,7 +80,7 @@ class BiRNN(hk.RNNCore):
 
     # Combine value and habit
     hv_combo = next_value + next_habit  # (bs, n_a)
-    action_probs = self._final_activation_fn(self.beta * hv_combo)  # (bs, n_a)
+    action_probs = self._final_activation_fn(hv_combo)  # (bs, n_a)
 
     return action_probs, (next_h_state, next_v_state, next_habit, next_value)
 
