@@ -51,6 +51,7 @@ class BiRNN(hk.RNNCore):
 
     update = hk.Linear(1)(next_state)
     value = (1 - self.forget) * value + self.forget * self._init_value_v
+    next_value = value + action * update
 
     return next_value, next_state
 
