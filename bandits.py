@@ -11,6 +11,17 @@ import numpy as np
 from CogModelingRNNsTutorial.rnn_utils import DatasetRNN
 
 ###################################
+# CONVENIENCE FUNCTIONS.          #
+###################################
+
+
+def _check_in_0_1_range(x, name):
+  if not (0 <= x <= 1):
+    raise ValueError(
+        f'Value of {name} must be in [0, 1] range. Found value of {x}.')
+
+
+###################################
 # GENERATIVE FUNCTIONS FOR AGENTS #
 ###################################
 
@@ -44,6 +55,9 @@ class AgentQ:
     self._forgetting_rate = forgetting_rate
     self._q_init = 0.5
     self.new_sess()
+
+    _check_in_0_1_range(alpha, 'alpha')
+    _check_in_0_1_range(alpha, 'alpha')
 
   def new_sess(self):
     """Reset the agent for the beginning of a new session."""
@@ -214,13 +228,17 @@ class EnvironmentBanditsFlips:
 
 
 class VanillaAgentQ(AgentQ):
-  def __init__(self, alpha, beta, n_actions):
+  """This agent is a wrapper of AgentQ with only alpha and beta parameters."""
+
+  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
     super(VanillaAgentQ, self).__init__(
         alpha, beta, n_actions=n_actions, forgetting_rate=0.)
 
 
 class MysteryAgentQ(AgentQ):
-  def __init__(self, alpha, beta, n_actions):
+  """Don't look at this agent if you want to do the exercises!"""
+
+  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
     super(MysteryAgentQ, self).__init__(
         alpha, beta, n_actions=n_actions, forgetting_rate=0.1)
 
