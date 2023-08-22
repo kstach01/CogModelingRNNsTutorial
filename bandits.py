@@ -217,14 +217,18 @@ class EnvironmentBanditsFlips:
     reward_prob_trial = self.reward_probs[choice]
 
     # Sample a reward with this probability
-    reward = np.random.binomial(1, reward_prob_trial)
+    reward = float(np.random.binomial(1, reward_prob_trial))
 
     # Check whether to flip the block
     if np.random.binomial(1, self._block_flip_prob):
       self.new_block()
 
     # Return the reward
-    return reward
+    return float(reward)
+
+  @property
+  def n_actions(self) -> int:
+    return 2
 
 
 class VanillaAgentQ(AgentQ):
@@ -252,11 +256,14 @@ class EnvironmentBanditsDrift:
   Attributes:
     sigma: A float, between 0 and 1, giving the magnitude of the drift
     reward_probs: Probability of reward associated with each action
+    n_actions: number of actions available
   """
 
-  def __init__(self,
-               sigma: float,
-               ):
+  def __init__(
+      self,
+      sigma: float,
+      n_actions: int = 2,
+      ):
     """Initialize the environment."""
     # Check inputs
     if sigma < 0:
@@ -265,6 +272,7 @@ class EnvironmentBanditsDrift:
 
     # Initialize persistent properties
     self._sigma = sigma
+    self._n_actions = n_actions
 
     # Sample new reward probabilities
     self._new_sess()
@@ -272,35 +280,46 @@ class EnvironmentBanditsDrift:
   def _new_sess(self):
     # Pick new reward probabilities.
     # Sample randomly between 0 and 1
-    self.reward_probs = np.random.rand(2)
+    self._reward_probs = np.random.rand(self._n_actions)
 
-  def step(self,
-           choice: int) -> int:
+  def step(self, choice: int) -> int:
     """Run a single trial of the task.
 
     Args:
-      choice: The choice made by the agent. 0 or 1
+      choice: integer specifying choice made by the agent (must be less than
+        n_actions.)
 
     Returns:
       reward: The reward to be given to the agent. 0 or 1.
 
     """
     # Check inputs
-    if not np.logical_or(choice == 0, choice == 1):
-      msg = ('choice given was {}, but must be either 0 or 1')
-      raise ValueError(msg.format(choice))
+    if choice not in range(self._n_actions):
+      msg = (
+          f'Found value for choice of {choice}, but must be in '
+          f'{list(range(self._n_actions))}')
+      raise ValueError(msg)
 
     # Sample reward with the probability of the chosen side
-    reward = np.random.rand() < self.reward_probs[choice]
+    reward = np.random.rand() < self._reward_probs[choice]
+
     # Add gaussian noise to reward probabilities
     drift = np.random.normal(loc=0, scale=self._sigma, size=2)
-    self.reward_probs += drift
+    self._reward_probs += drift
 
     # Fix reward probs that've drifted below 0 or above 1
-    self.reward_probs = np.maximum(self.reward_probs, [0, 0])
-    self.reward_probs = np.minimum(self.reward_probs, [1, 1])
+    self._reward_probs = np.maximum(self._reward_probs, [0, 0])
+    self._reward_probs = np.minimum(self._reward_probs, [1, 1])
 
     return reward
+
+  @property
+  def reward_probs(self) -> np.ndarray:
+    return self._reward_probs.copy()
+
+  @property
+  def n_actions(self) -> int:
+    return self._n_actions
 
 
 class BanditSession(NamedTuple):
@@ -451,8 +470,9 @@ def create_dataset(agent: Agent,
 
 
 def show_valuemetric(experiment_list):
+  """Plot value metric over time from data in experiment_list."""
 
-  reward_prob_bins = np.linspace(-1,1,50)
+  reward_prob_bins = np.linspace(-1, 1, 50)
   n_left = np.zeros(len(reward_prob_bins)-1)
   n_right = np.zeros(len(reward_prob_bins)-1)
 
@@ -516,6 +536,7 @@ class HkAgentQ(hk.RNNCore):
     # Local parameters
     self.alpha = jax.nn.sigmoid(alpha_unsigmoid)
     self.beta = beta
+    self._q_init = 0.5
 
   def __call__(self, inputs: jnp.array, prev_state: jnp.array):
     prev_qs = prev_state
@@ -534,5 +555,5 @@ class HkAgentQ(hk.RNNCore):
     return choice_logits, new_qs
 
   def initial_state(self, batch_size):
-    values = 0.5*jnp.ones([batch_size, 2])  # shape: (batch_size, n_actions)
+    values = self._q_init * jnp.ones([batch_size, 2])  # shape: (batch_size, n_actions)
     return values
