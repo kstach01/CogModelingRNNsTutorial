@@ -1,14 +1,16 @@
+"""Utility functions for training RNNs."""
 from __future__ import print_function
 
 from typing import Any, Callable, Dict, Optional, Tuple
 
-import numpy as np
+import chex
+import haiku as hk
 import jax
 import jax.numpy as jnp
-import haiku as hk
-import optax
-import chex
 import matplotlib.pyplot as plt
+import numpy as np
+import optax
+
 
 class DatasetRNN():
   """Holds a dataset for training an RNN, consisting of inputs and targets.
@@ -66,8 +68,12 @@ class DatasetRNN():
   def __iter__(self):
     return self
 
-  def __next__(self):
-    """Return a batch of data, including both xs and ys."""
+  def __next__(self) -> Tuple[chex.array, chex.array]:
+    """Return a batch of data, including both xs and ys.
+    
+    Returns:
+      x, y: next input (x) and target (y) in sequence.
+    """
 
     # Define the chunk we want: from idx to idx + batch_size
     start = self._idx
@@ -92,8 +98,8 @@ def nan_in_dict(d):
   if not isinstance(d, dict):
     return np.any(np.isnan(d))
   else:
-    return any(nan_in_dict(v) for v in d.values()) 
-    
+    return any(nan_in_dict(v) for v in d.values())
+
 
 def train_model(
     model_fun: Callable[[], hk.RNNCore],
@@ -103,32 +109,34 @@ def train_model(
     opt_state: Optional[optax.OptState] = None,
     params: Optional[hk.Params] = None,
     n_steps: int = 1000,
-    penalty_scale=0,
+    penalty_scale: float = 0,
     loss_fun: str = 'categorical',
     do_plot: bool = True,
-) -> Tuple[hk.Params, optax.OptState, Dict[str, np.ndarray]]:
+    ) -> Tuple[hk.Params, optax.OptState, Dict[str, np.ndarray]]:
   """Trains a model for a fixed number of steps.
 
   Args:
     model_fun: A function that, when called, returns a Haiku RNN object
-    training_dataset: A DatasetRNN, containing the data you wish to train on
-    opt: The optimizer you'd like to use to train the network
+    dataset: A DatasetRNN, containing the data you wish to train on
+    optimizer: The optimizer you'd like to use to train the network
     random_key: A jax random key, to be used in initializing the network
-    opt_state: An optimzier state suitable for opt
-      If not specified, will initialize a new optimizer from scratch
-    params:  A set of parameters suitable for the network given by make_network
-      If not specified, will begin training a network from scratch
+    opt_state: An optimzier state suitable for opt.
+      If not specified, will initialize a new optimizer from scratch.
+    params:  A set of parameters suitable for the network given by make_network.
+      If not specified, will begin training a network from scratch.
     n_steps: An integer giving the number of steps you'd like to train for
-    penalty_scale:
-    loss:
+      (default=1000)
+    penalty_scale: scalar weight applied to bottleneck penalty (default = 0)
+    loss_fun: string specifying type of loss function (default='categorical')
     do_plot: Boolean that controls whether a learning curve is plotted
+      (default=True)
 
   Returns:
     params: Trained parameters
     opt_state: Optimizer state at the end of training
     losses: Losses on both datasets
   """
-
+  n_steps = int(n_steps)
   sample_xs, _ = next(dataset)  # Get a sample input, for shape
 
   # Haiku, step one: Define the batched network
@@ -215,10 +223,10 @@ def train_model(
   # Train the network!
   training_loss = []
   for step in jnp.arange(n_steps):
-    random_key, key1, key2 = jax.random.split(random_key, 3)
+    random_key, key_i = jax.random.split(random_key, 2)
     # Train on training data
     xs, ys = next(dataset)
-    loss, params, opt_state = train_step(params, opt_state, xs, ys, key2)
+    loss, params, opt_state = train_step(params, opt_state, xs, ys, key_i)
     # Log every 10th step
     if step % 10 == 9:
       training_loss.append(float(loss))
@@ -251,25 +259,33 @@ def train_model(
 def fit_model(
     model_fun,
     dataset,
-    optimizer=None,
-    loss_fun:str='categorical',
-    convergence_thresh=1e-5,
-    random_key=None,
-):
+    optimizer: Optional = None,
+    loss_fun: str = 'categorical',
+    convergence_thresh: float = 1e-5,
+    random_key: Optional = None,
+    ):
   """Fits a model to convergence, by repeatedly calling train_model.
+  
+  Args:
+    model_fun: A function that, when called, returns a Haiku RNN object
+    dataset: A DatasetRNN, containing the data you wish to train on
+    optimizer: The optimizer you'd like to use to train the network
+    loss_fun: string specifying type of loss function (default='categorical')
+    convergence_thresh: float, value loss must be below for training to end
+      (default=1e-5)
+    random_key: A jax random key, to be used in initializing the network
   """
-
   if random_key is None:
     random_key = jax.random.PRNGKey(0)
 
   # Initialize the model
-  params, opt_state, losses = train_model(
-        model_fun,
-        dataset,
-        optimizer=optimizer,
-        n_steps=0,
-    )
-  
+  params, opt_state, _ = train_model(
+      model_fun,
+      dataset,
+      optimizer=optimizer,
+      n_steps=0,
+  )
+
   # Train until the loss stops going down
   converged = False
   loss = np.inf
@@ -280,21 +296,24 @@ def fit_model(
         params=params,
         opt_state=opt_state,
         optimizer=optimizer,
-        loss_fun = loss_fun,
-        do_plot = False,
+        loss_fun=loss_fun,
+        do_plot=False,
         n_steps=1000,
     )
 
     loss_new = losses['training_loss'][-1]
     # Declare "converged" if loss has not improved very much (but has improved)
-    converged = loss_new < loss * (1+convergence_thresh) and loss_new > loss * (1 - convergence_thresh)
+    converged = (
+        loss_new < loss * (1 + convergence_thresh) and
+        loss_new > loss * (1 - convergence_thresh))
     if converged:
       print('Model Converged!')
     else:
       print('Model not yet converged - Running more steps of gradient descent.')
     loss = loss_new
-      
+
   return params, loss
+
 
 def eval_model(
     model_fun: Callable[[], hk.RNNCore],
@@ -304,7 +323,7 @@ def eval_model(
   """Run an RNN with specified params and inputs. Track internal state.
 
   Args:
-    make_network: A Haiku function that defines a network architecture
+    model_fun: A Haiku function that defines a network architecture
     params: A set of params suitable for that network
     xs: A batch of inputs [timesteps, episodes, features] suitable for the model
 
