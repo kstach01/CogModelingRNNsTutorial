@@ -95,6 +95,7 @@ class AgentNetwork:
 
   def get_choice_probs(self) -> np.ndarray:
     output_logits, _ = self._model_fun(self._xs, self._state)
+    output_logits = np.array(output_logits)
     choice_probs = np.exp(output_logits[0]) / np.sum(
         np.exp(output_logits[0]))
     return choice_probs
@@ -105,8 +106,9 @@ class AgentNetwork:
     return choice
 
   def update(self, choice: int, reward: int):
-    self._xs = jnp.array([[choice, reward]])
-    _, self._state = self._model_fun(self._xs, self._state)
+    self._xs = np.array([[choice, reward]])
+    _, new_state = self._model_fun(self._xs, self._state)
+    self._state = np.array(new_state)
 
 
 ################
