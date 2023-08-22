@@ -15,14 +15,14 @@ class BiRNN(hk.RNNCore):
 
     super().__init__()
 
-    self._hs = rl_params.s
-    self._vs = rl_params.s
-    self._ho = rl_params.o
-    self._vo = rl_params.o
+    self._hs = rl_params['s']
+    self._vs = rl_params['s']
+    self._ho = rl_params['o']
+    self._vo = rl_params['o']
 
-    self._n_actions = network_params.n_actions
-    self._hidden_size = network_params.hidden_size
-    self._final_activation_fn = network_params.final_activation_fn
+    self._n_actions = network_params['n_actions']
+    self._hidden_size = network_params['hidden_size']
+    self._final_activation_fn = network_params['final_activation_fn']
 
     init = hk.initializers.RandomNormal(stddev=1, mean=1)
     self._init_value_v = hk.get_parameter('init_value_v', (1,), init=init)
