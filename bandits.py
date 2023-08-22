@@ -178,6 +178,22 @@ class AgentNetwork:
     self._state = np.array(new_state)
 
 
+class VanillaAgentQ(AgentQ):
+  """This agent is a wrapper of AgentQ with only alpha and beta parameters."""
+
+  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
+    super(VanillaAgentQ, self).__init__(
+        alpha, beta, n_actions=n_actions, forgetting_rate=0.)
+
+
+class MysteryAgentQ(AgentQ):
+  """Don't look at this agent if you want to do the exercises!"""
+
+  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
+    super(MysteryAgentQ, self).__init__(
+        alpha, beta, n_actions=n_actions, forgetting_rate=0.1)
+
+
 ################
 # ENVIRONMENTS #
 ################
@@ -229,22 +245,6 @@ class EnvironmentBanditsFlips:
   @property
   def n_actions(self) -> int:
     return 2
-
-
-class VanillaAgentQ(AgentQ):
-  """This agent is a wrapper of AgentQ with only alpha and beta parameters."""
-
-  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
-    super(VanillaAgentQ, self).__init__(
-        alpha, beta, n_actions=n_actions, forgetting_rate=0.)
-
-
-class MysteryAgentQ(AgentQ):
-  """Don't look at this agent if you want to do the exercises!"""
-
-  def __init__(self, alpha: float, beta: float, n_actions: int = 2):
-    super(MysteryAgentQ, self).__init__(
-        alpha, beta, n_actions=n_actions, forgetting_rate=0.1)
 
 
 class EnvironmentBanditsDrift:
@@ -304,12 +304,11 @@ class EnvironmentBanditsDrift:
     reward = np.random.rand() < self._reward_probs[choice]
 
     # Add gaussian noise to reward probabilities
-    drift = np.random.normal(loc=0, scale=self._sigma, size=2)
+    drift = np.random.normal(loc=0, scale=self._sigma, size=self._n_actions)
     self._reward_probs += drift
 
     # Fix reward probs that've drifted below 0 or above 1
-    self._reward_probs = np.maximum(self._reward_probs, [0, 0])
-    self._reward_probs = np.minimum(self._reward_probs, [1, 1])
+    self._reward_probs = np.clip(self._reward_probs, 0, 1)
 
     return reward
 
