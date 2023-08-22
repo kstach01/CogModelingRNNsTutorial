@@ -39,7 +39,7 @@ class AgentQ:
       n_actions: number of actions (default=2)
     """
     self._alpha = alpha
-    self._alpha_forget = forgetting_rate
+    self._forgetting_rate = forgetting_rate
     self._beta = beta
     self._n_actions = n_actions
     self.new_sess()
