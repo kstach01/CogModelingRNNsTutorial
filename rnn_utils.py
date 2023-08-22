@@ -68,7 +68,7 @@ class DatasetRNN():
   def __iter__(self):
     return self
 
-  def __next__(self) -> Tuple[chex.array, chex.array]:
+  def __next__(self) -> Tuple[chex.Array, chex.Array]:
     """Return a batch of data, including both xs and ys.
     
     Returns:
