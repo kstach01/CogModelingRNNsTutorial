@@ -28,7 +28,7 @@ class AgentQ:
       self,
       alpha: float = 0.2,
       beta: float = 3.,
-      alpha_forget = 0.,
+      forgetting_rate: float = 0.,
       n_actions: int = 2,
       ):
     """Update the agent after one step of the task.
@@ -39,7 +39,7 @@ class AgentQ:
       n_actions: number of actions (default=2)
     """
     self._alpha = alpha
-    self._alpha_forget = alpha_forget
+    self._alpha_forget = forgetting_rate
     self._beta = beta
     self._n_actions = n_actions
     self.new_sess()
@@ -70,7 +70,7 @@ class AgentQ:
       reward: The reward received by the agent. 0 or 1
     """
     prev_qs = self.q
-    prev_qs = (1-self._alpha_forget) * prev_qs
+    prev_qs = (1-self._forgetting_rate) * prev_qs
     self.q[choice] = (1 - self._alpha) * prev_qs[choice] + self._alpha * reward
 
 
