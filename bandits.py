@@ -372,7 +372,6 @@ def run_experiment(agent: Agent,
 
 def plot_session(choices: np.ndarray,
                  rewards: np.ndarray,
-                 n_trials: int,
                  timeseries: np.ndarray,
                  timeseries_name: str):
   """Plot data from a single behavioral session of the bandit task."""
