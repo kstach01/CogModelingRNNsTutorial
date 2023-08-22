@@ -99,7 +99,7 @@ class AgentNetwork:
   def get_choice_probs(self) -> np.ndarray:
     output_logits, _ = self._model_fun(self._xs, self._state)
     output_logits = np.array(output_logits)
-    output_logits = output_logits[0][:n_actions]
+    output_logits = output_logits[0][:self._n_actions]
     choice_probs = np.exp(output_logits) / np.sum(
         np.exp(output_logits))
     return choice_probs
