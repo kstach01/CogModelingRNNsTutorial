@@ -19,6 +19,8 @@ class BiRNN(hk.RNNCore):
     # self._vs = rl_params['s']
     # self._ho = rl_params['o']
     # self._vo = rl_params['o']
+    self.w_h = rl_params['w_h']
+    self.w_v = rl_params['w_v']
 
     self._n_actions = network_params['n_actions']
     self._hidden_size = network_params['hidden_size']
@@ -79,7 +81,7 @@ class BiRNN(hk.RNNCore):
     next_habit, next_h_state = self._habit_rnn(h_state, habit, action)
 
     # Combine value and habit
-    logits = next_value + next_habit  # (bs, n_a)
+    logits = self.w_v * next_value + self.w_h * next_habit  # (bs, n_a)
 
     return logits, (next_h_state, next_v_state, next_habit, next_value)
 
