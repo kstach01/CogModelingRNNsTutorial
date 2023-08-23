@@ -79,9 +79,9 @@ class BiRNN(hk.RNNCore):
     next_habit, next_h_state = self._habit_rnn(h_state, habit, action)
 
     # Combine value and habit
-    hv_combo = next_value + next_habit  # (bs, n_a)
+    logits = next_value + next_habit  # (bs, n_a)
 
-    return hv_combo, (next_h_state, next_v_state, next_habit, next_value)
+    return logits, (next_h_state, next_v_state, next_habit, next_value)
 
   def initial_state(self, batch_size: Optional[int]):
 
