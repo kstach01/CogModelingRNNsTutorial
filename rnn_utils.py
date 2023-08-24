@@ -323,11 +323,11 @@ def fit_model(
       if np.isinf(loss):
         msg += '.'
       else:
-        msg += f', but model has reached \nconvergence value of {convergence_value:0.4f} which is greater than {convergence_thresh}.') 
+        msg += f', but model has reached \nconvergence value of {convergence_value:0.4f} which is greater than {convergence_thresh}.'
       continue_training = False
     else:
       update_msg = '' if np.isinf(loss) else f'(convergence_value = {convergence_value:0.4f}) '
-      msg = f'Model not yet converged {update_msg}- Running more steps of gradient descent.')
+      msg = f'Model not yet converged {update_msg}- Running more steps of gradient descent.'
     print(msg)
     loss = loss_new
 
