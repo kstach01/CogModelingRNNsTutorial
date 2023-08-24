@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 
-from CogModelingRNNsTutorial.rnn_utils import DatasetRNN
+from . rnn_utils import DatasetRNN
 
 # Setup so that plots will look nice
 small = 15

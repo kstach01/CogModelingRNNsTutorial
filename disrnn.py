@@ -8,7 +8,7 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
 
-from CogModelingRNNsTutorial import rnn_utils
+from . import rnn_utils
 
 
 def kl_gaussian(mean: jnp.ndarray, var: jnp.ndarray) -> jnp.ndarray:
