@@ -21,11 +21,12 @@ class BiRNN(hk.RNNCore):
     # self._vo = rl_params['o']
     self.w_h = rl_params['w_h']
     self.w_v = rl_params['w_v']
+    self.init_value = init_value
 
     self._n_actions = network_params['n_actions']
     self._hidden_size = network_params['hidden_size']
 
-    init = hk.initializers.RandomNormal(stddev=1, mean=1)
+    # init = hk.initializers.RandomNormal(stddev=1, mean=1)
     # self._init_value_v = hk.get_parameter('init_value_v', (1,), init=init)
     # self._init_value_h = hk.get_parameter('init_value_h', (1,), init=init)
 
@@ -51,7 +52,7 @@ class BiRNN(hk.RNNCore):
     next_state = jax.nn.tanh(hk.Linear(self._hidden_size)(inputs))
 
     update = hk.Linear(1)(next_state)
-    value = (1 - self.forget) * value + self.forget * self._init_value_v
+    value = (1 - self.forget) * value + self.forget * self.init_value
     next_value = value + action * update
 
     return next_value, next_state
@@ -91,5 +92,5 @@ class BiRNN(hk.RNNCore):
         0 * jnp.ones([batch_size, self._hidden_size]),  # h_state
         0 * jnp.ones([batch_size, self._hidden_size]),  # v_state
         0 * jnp.ones([batch_size, self._n_actions]),  # habit
-        0.5 * jnp.ones([batch_size, self._n_actions]),  # value
+        self.init_value * jnp.ones([batch_size, self._n_actions]),  # value
         )
