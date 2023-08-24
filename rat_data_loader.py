@@ -22,7 +22,7 @@ def load_data_for_one_mouse(fname=None, pickle_dir=PICKLE_DIR, mouse_id=None):
   """Load data for a single mouse."""
   if not os.path.exists(pickle_dir):
     raise ValueError(f'pickle_dir {pickle_dir} not found.')
-  asdf
+
   if fname is None:
     print('a')
     mouse_files = [f for f in os.listdir(pickle_dir) if (f.startswith('miller2019_mouse') and f.endswith('.pickle'))]
