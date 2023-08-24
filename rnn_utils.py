@@ -273,7 +273,7 @@ def fit_model(
     dataset: A DatasetRNN, containing the data you wish to train on
     optimizer: The optimizer you'd like to use to train the network
     loss_fun: string specifying type of loss function (default='categorical')
-    convergence_thresh: float, the change in loss in one timestep must be below
+    convergence_thresh: float, the fractional change in loss in one timestep must be below
       this for training to end (default=1e-5).
     random_key: A jax random key, to be used in initializing the network
     n_steps_per_call: The number of steps to give to train_model (default=1000)
@@ -311,14 +311,13 @@ def fit_model(
 
     loss_new = losses['training_loss'][-1]
     # Declare "converged" if loss has not improved very much (but has improved)
-    converged = (
-        loss_new < loss * (1 + convergence_thresh) and
-        loss_new > loss * (1 - convergence_thresh))
+    convergence_value = np.abs((loss_new - loss)) / loss
+    converged = convergence_value > convergence_thresh
     if converged:
       print('Model Converged!')
       continue_training = False
     elif (n_steps_per_call * n_calls_to_train_model) >= n_steps_max:
-      print('Maximum iterations reached, but model has not converged.')
+      print(f'Maximum iterations reached, but model has reached convergence value \nof {convergence_value} which is greater than{convergence_thresh}.')
       continue_training = False
     else:
       print('Model not yet converged - Running more steps of gradient descent.')
