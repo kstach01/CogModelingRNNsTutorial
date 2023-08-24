@@ -24,21 +24,18 @@ def load_data_for_one_mouse(fname=None, pickle_dir=PICKLE_DIR, mouse_id=None):
     raise ValueError(f'pickle_dir {pickle_dir} not found.')
 
   if fname is None:
-    print('a')
     mouse_files = [f for f in os.listdir(pickle_dir) if (f.startswith('miller2019_mouse') and f.endswith('.pickle'))]
     if mouse_id is None:  # Select a random mouse from those available.
       fname = mouse_files[np.random.randint(len(mouse_files))]
       print(f'Loading data from {fname}.')
 
     else:
-      print('b')
       fname = _get_pickle_fname(mouse_id)
       if fname not in mouse_files:
         raise ValueError((
             f'File {fname} not found in {pickle_dir}; found {mouse_files}. '
             'Check mouse_id and pickle_dir are correct.'))
   else:
-    print('c')
     fpath = os.path.join(pickle_dir, fname)
     if not os.path.exists(fpath):
       raise ValueError(f'path {fpath} not found.')
