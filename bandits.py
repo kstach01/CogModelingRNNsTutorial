@@ -464,6 +464,7 @@ def create_dataset(agent: Agent,
 
   Returns:
     A DatasetRNN object suitable for training RNNs.
+    An experliment_list with the results of (simulated) experiments
   """
   xs = np.zeros((n_trials_per_session, n_sessions, 2))
   ys = np.zeros((n_trials_per_session, n_sessions, 1))
@@ -575,3 +576,13 @@ class HkAgentQ(hk.RNNCore):
   def initial_state(self, batch_size):
     values = self._q_init * jnp.ones([batch_size, 2])  # shape: (batch_size, n_actions)
     return values
+
+
+def find_session_end(x):
+  # If the last 2 entries are -1, assume the session has been padded + find true session end.
+  if np.all(xs[:2] < 0):
+    trial_end = np.where((x[:-1] > 0) & (np.diff(xs != 0)))[0][-1]
+  else:
+    trial_end = xs.shape[0]
+  return trial_end
+
