@@ -1,0 +1,20 @@
+Metadata-Version: 2.1
+Name: cogmodelingrnns
+Version: 0.0.0
+Summary: Tutorial on Cognitive Models of Behavior: Classical and Deep Learning Approaches
+Home-page: UNKNOWN
+License: MIT
+Project-URL: Documentation, https://github.com/kstach01/CogModelingRNNsTutorial
+Project-URL: Source, https://github.com/kstach01/CogModelingRNNsTutorial
+Description: # CCN 2023: Keynote + Tutorial
+        ## Cognitive models of Behavior: Classical and Deep Learning Approaches
+        ### Maria Eckstein, Kevin Miller, Kim Stachenfeld
+        
+        Code for CCN 2023 tutorial.
+        
+Platform: any
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Requires-Python: >=3.7
+Description-Content-Type: text/markdown
