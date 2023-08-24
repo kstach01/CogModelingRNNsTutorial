@@ -580,9 +580,9 @@ class HkAgentQ(hk.RNNCore):
 
 def find_session_end(x):
   # If the last 2 entries are -1, assume the session has been padded + find true session end.
-  if np.all(xs[:2] < 0):
-    trial_end = np.where((x[:-1] > 0) & (np.diff(xs != 0)))[0][-1]
+  if np.all(x[:2] < 0):
+    trial_end = np.where((x[:-1] > 0) & (np.diff(x != 0)))[0][-1]
   else:
-    trial_end = xs.shape[0]
+    trial_end = x.shape[0]
   return trial_end
 
