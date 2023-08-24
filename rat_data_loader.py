@@ -8,8 +8,8 @@ from typing import List, Optional
 from . import rnn_utils
 
 
-JSON_PATH = "./data/miller2019_all_mice.json"  # Where raw mouse data is stored
-PICKLE_DIR = "./data/pickle_files/"  # Where you will save out individual mouse data
+JSON_PATH = "./CogModelingRNNsTutorial/data/miller2019_all_mice.json"  # Where raw mouse data is stored
+PICKLE_DIR = "./CogModelingRNNsTutorial/data/pickle_files/"  # Where you will save out individual mouse data
 
 
 def _get_pickle_fname(mouse_id):
