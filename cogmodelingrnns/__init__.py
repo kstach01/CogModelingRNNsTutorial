@@ -1,7 +1,7 @@
 """Initialize."""
-import bandits
-import disrnn
-import hybrnn
-import rat_data_loader
-import rnn_utils
+from cogmodelingrnn import bandits
+from cogmodelingrnn import disrnn
+from cogmodelingrnn import hybrnn
+from cogmodelingrnn import rat_data_loader
+from cogmodelingrnn import rnn_utils
 
