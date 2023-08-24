@@ -69,14 +69,15 @@ class BiRNN(hk.RNNCore):
 
   def __call__(self, inputs: jnp.ndarray, prev_state: jnp.ndarray):
     h_state, v_state, habit, value = prev_state
-    action = inputs[:, :self._n_actions]  # shape: (batch_size, n_actions)
+    action = inputs[:, 0]  # shape: (batch_size, )
     reward = inputs[:, -1]  # shape: (batch_size,)
-
+    action_onehot = jax.nn.one_hot(action,2)
+    
     # Value module: update/create new values
-    next_value, next_v_state = self._value_rnn(v_state, value, action, reward)
+    next_value, next_v_state = self._value_rnn(v_state, value, action_onehot, reward)
 
     # Habit module: update/create new habit
-    next_habit, next_h_state = self._habit_rnn(h_state, habit, action)
+    next_habit, next_h_state = self._habit_rnn(h_state, habit, action_onehot)
 
     # Combine value and habit
     logits = self.w_v * next_value + self.w_h * next_habit  # (bs, n_a)
