@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import numpy as np
 
-from cogmodeling import rnn_utils
+from . import rnn_utils
 DatasetRNN = rnn_utils.DatasetRNN
 
 
