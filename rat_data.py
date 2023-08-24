@@ -18,23 +18,26 @@ def _get_single_rat_fname(rat_id):
   return f"{PREFIX}_rat{rat_id_padded}.npy"
 
 
-def load_data_for_one_rat(fname=None, data_dir=DATA_DIR, rat_id=None):
-  """Load data for a single rat."""
+def load_data_for_one_rat(fname=None, data_dir=DATA_DIR):
+  """Load data for a single rat.
+
+  Args:
+    fname: name of file (will likely be the name of a npy file you loaded
+    data_dir: directory where file lives
+
+
+  Returns:
+    ys: n_trials x n_sessions x 2 array of choices and rewards
+    ys: n_trials x n_sessions x 1 array of rewards
+    fname: name of file
+  """
   if not os.path.exists(data_dir):
     raise ValueError(f'data_dir {data_dir} not found.')
 
   if fname is None:
     rat_files = [f for f in os.listdir(data_dir) if (f.startswith(f'{PREFIX}_rat') and f.endswith('.npy'))]
-    if rat_id is None:  # Select a random rat from those available.
-      fname = rat_files[np.random.randint(len(rat_files))]
-      print(f'Loading data from {fname}.')
-
-    else:
-      fname = _get_single_rat_fname(rat_id)
-      if fname not in rat_files:
-        raise ValueError((
-            f'File {fname} not found in {data_dir}; found {rat_files}. '
-            'Check rat_id and data_dir are correct.'))
+    fname = rat_files[np.random.randint(len(rat_files))]
+    print(f'Loading data from {fname}.')
   else:
     fpath = os.path.join(data_dir, fname)
     if not os.path.exists(fpath):
@@ -48,10 +51,21 @@ def load_data_for_one_rat(fname=None, data_dir=DATA_DIR, rat_id=None):
 
 
 def format_into_dataset(xs, ys, dataset_constructor):
+  """Format inputs xs and outputs ys into dataset.
+
+  Args:
+    ys: n_trials x n_sessions x 2 array of choices and rewards
+    ys: n_trials x n_sessions x 1 array of rewards
+    dataset_constructor: constructor that accepts xs and ys as arguments; probably
+      use rnn_utils.DatasetRNN
+
+  Returns:
+    dataset_train: a dataset containing even numbered sessions
+    dataset_train: a dataset containing odd numbered sessions
+  """
   dataset_train = dataset_constructor(xs[:, ::2], ys[:, ::2])
   dataset_test = dataset_constructor(xs[:, 1::2], ys[:, 1::2])
   return dataset_train, dataset_test
-
 
 
 def find(s, ch):
