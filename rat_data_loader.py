@@ -22,7 +22,8 @@ def load_data_for_one_mouse(mouse_id=None, pickle_dir=PICKLE_DIR):
   if not os.path.exists(pickle_dir):
     raise ValueError(f'json_path {json_path} does not exist.')
   
-  mouse_files = os.listdir(pickle_dir)
+  mouse_files = [f for f in os.listdir(pickle_dir) if (f.startswith('miller2019_mouse') and f.endswith('.pickle'))]
+  print(mouse_files)
   if mouse_id is None:  # Select a random mouse from those available.
     fname = mouse_files[np.random.randint(len(mouse_files))]
     print(f'Loading data from {fname}.')
