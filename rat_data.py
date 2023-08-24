@@ -50,7 +50,7 @@ def load_data_for_one_rat(fname=None, data_dir=DATA_DIR):
   return xs, ys, fname
 
 
-def format_into_dataset(xs, ys, dataset_constructor):
+def format_into_datasets(xs, ys, dataset_constructor):
   """Format inputs xs and outputs ys into dataset.
 
   Args:
