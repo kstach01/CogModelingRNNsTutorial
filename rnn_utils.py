@@ -263,8 +263,8 @@ def fit_model(
     loss_fun: str = 'categorical',
     convergence_thresh: float = 1e-5,
     random_key: Optional = None,
-    n_steps_per_call: int = 1000,
-    n_steps_max: int = 1000,
+    n_steps_per_call: int = 500,
+    n_steps_max: int = 2000,
     ):
   """Fits a model to convergence, by repeatedly calling train_model.
   
@@ -311,16 +311,21 @@ def fit_model(
 
     loss_new = losses['training_loss'][-1]
     # Declare "converged" if loss has not improved very much (but has improved)
+    converged = (
+            loss_new < loss * (1 + convergence_thresh) and
+            loss_new > loss * (1 - convergence_thresh)
+    )
+
     convergence_value = np.abs((loss_new - loss)) / loss
     converged = convergence_value > convergence_thresh
     if converged:
       print('Model Converged!')
       continue_training = False
     elif (n_steps_per_call * n_calls_to_train_model) >= n_steps_max:
-      print(f'Maximum iterations reached, but model has reached convergence value \nof {convergence_value} which is greater than{convergence_thresh}.')
+      print(f'Maximum iterations reached, but model has reached \nconvergence value of {convergence_value:0.4f} which is greater than {convergence_thresh}.')
       continue_training = False
     else:
-      print('Model not yet converged - Running more steps of gradient descent.')
+        print(f'Model not yet converged (convergence_value = {convergence_value:0.4f}) - Running more steps of gradient descent.')
     loss = loss_new
 
   return params, loss
