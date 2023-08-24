@@ -26,8 +26,8 @@ class BiRNN(hk.RNNCore):
     self._hidden_size = network_params['hidden_size']
 
     init = hk.initializers.RandomNormal(stddev=1, mean=1)
-    self._init_value_v = hk.get_parameter('init_value_v', (1,), init=init)
-    self._init_value_h = hk.get_parameter('init_value_h', (1,), init=init)
+    # self._init_value_v = hk.get_parameter('init_value_v', (1,), init=init)
+    # self._init_value_h = hk.get_parameter('init_value_h', (1,), init=init)
 
     if rl_params['fit_forget']:
       init = hk.initializers.RandomNormal(stddev=1, mean=0)
@@ -90,6 +90,6 @@ class BiRNN(hk.RNNCore):
     return (
         0 * jnp.ones([batch_size, self._hidden_size]),  # h_state
         0 * jnp.ones([batch_size, self._hidden_size]),  # v_state
-        self._init_value_h * jnp.ones([batch_size, self._n_actions]),  # habit
-        self._init_value_v * jnp.ones([batch_size, self._n_actions]),  # value
+        0 * jnp.ones([batch_size, self._n_actions]),  # habit
+        0.5 * jnp.ones([batch_size, self._n_actions]),  # value
         )
