@@ -263,6 +263,8 @@ def fit_model(
     loss_fun: str = 'categorical',
     convergence_thresh: float = 1e-5,
     random_key: Optional = None,
+    n_steps_per_call: int = 1000,
+    n_steps_max: int = 1000,
     ):
   """Fits a model to convergence, by repeatedly calling train_model.
   
@@ -271,9 +273,12 @@ def fit_model(
     dataset: A DatasetRNN, containing the data you wish to train on
     optimizer: The optimizer you'd like to use to train the network
     loss_fun: string specifying type of loss function (default='categorical')
-    convergence_thresh: float, value loss must be below for training to end
-      (default=1e-5)
+    convergence_thresh: float, the change in loss in one timestep must be below
+      this for training to end (default=1e-5).
     random_key: A jax random key, to be used in initializing the network
+    n_steps_per_call: The number of steps to give to train_model (default=1000)
+    n_steps_max: The maximum number of iterations to run, even if convergence
+      is not reached (default=1000)
   """
   if random_key is None:
     random_key = jax.random.PRNGKey(0)
@@ -287,9 +292,11 @@ def fit_model(
   )
 
   # Train until the loss stops going down
+  continue_training = True
   converged = False
   loss = np.inf
-  while not converged:
+  n_calls_to_train_model = 0
+  while continue_training:
     params, opt_state, losses = train_model(
         model_fun,
         dataset,
@@ -298,8 +305,9 @@ def fit_model(
         optimizer=optimizer,
         loss_fun=loss_fun,
         do_plot=False,
-        n_steps=1000,
+        n_steps=n_steps_per_call,
     )
+    n_calls_to_train_model += 1
 
     loss_new = losses['training_loss'][-1]
     # Declare "converged" if loss has not improved very much (but has improved)
@@ -308,6 +316,10 @@ def fit_model(
         loss_new > loss * (1 - convergence_thresh))
     if converged:
       print('Model Converged!')
+      continue_training = False
+    elif (n_steps_per_call * n_calls_to_train_model) >= n_steps_max:
+      print('Maximum iterations reached, but model has not converged.')
+      continue_training = False
     else:
       print('Model not yet converged - Running more steps of gradient descent.')
     loss = loss_new
