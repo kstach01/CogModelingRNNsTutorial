@@ -1,9 +1,0 @@
-LICENSE
-README.md
-setup.cfg
-setup.py
-cogmodelingrnns.egg-info/PKG-INFO
-cogmodelingrnns.egg-info/SOURCES.txt
-cogmodelingrnns.egg-info/dependency_links.txt
-cogmodelingrnns.egg-info/requires.txt
-cogmodelingrnns.egg-info/top_level.txt
