@@ -12,17 +12,26 @@ JSON_PATH = "./data/miller2019_all_mice.json"  # Where raw mouse data is stored
 PICKLE_DIR = "./data/pickle_files/"  # Where you will save out individual mouse data
 
 
-def load_data_for_one_mouse(mouse_id=0, pickle_dir=PICKLE_DIR):
+def _get_pickle_fname(mouse_id):
+  mouse_id_padded = f'{mouse_id}'.rjust(2, '0')
+  return f"miller2019_mouse{mouse_id_padded}.pickle"
+
+
+def load_data_for_one_mouse(mouse_id=None, pickle_dir=PICKLE_DIR):
   """Load data for a single mouse."""
   if not os.path.exists(pickle_dir):
     raise ValueError(f'json_path {json_path} does not exist.')
   
-  fname = _get_pickle_fname(mouse_id)
-  ls = os.listdir(pickle_dir)
-  if fname not in ls:
-    raise ValueError((
-        f'File {fname} not found in {pickle_dir}; found {ls}. '
-        'Check mouse_id and pickle_dir are correct.'))
+  mouse_files = os.listdir(pickle_dir)
+  if mouse_id is None:  # Select a random mouse from those available.
+    fname = mouse_files[np.random.randint(len(mouse_files))]
+
+  else:
+    fname = _get_pickle_fname(mouse_id)
+    if fname not in mouse_files:
+      raise ValueError((
+          f'File {fname} not found in {pickle_dir}; found {mouse_files}. '
+          'Check mouse_id and pickle_dir are correct.'))
 
   with open(os.path.join(pickle_dir, fname), 'rb') as f:
     data = pickle.load(f)
@@ -134,11 +143,6 @@ def get_rat_bandit_datasets(data_file: Optional[str] = None):
     dataset_list.append(dataset_rat)
 
   return dataset_list
-
-
-def _get_pickle_fname(mouse_id):
-  mouse_id_padded = f'{mouse_id}'.rjust(2, '0')
-  return f"miller2019_mouse{mouse_id_padded}.pickle"
 
 
 def save_out_mouse_data_as_pickle(json_path=JSON_PATH, pickle_dir=PICKLE_DIR, verbose=True):
