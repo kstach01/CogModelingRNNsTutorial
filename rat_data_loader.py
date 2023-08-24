@@ -25,6 +25,7 @@ def load_data_for_one_mouse(mouse_id=None, pickle_dir=PICKLE_DIR):
   mouse_files = os.listdir(pickle_dir)
   if mouse_id is None:  # Select a random mouse from those available.
     fname = mouse_files[np.random.randint(len(mouse_files))]
+    print(f'Loading data from {fname}.')
 
   else:
     fname = _get_pickle_fname(mouse_id)
