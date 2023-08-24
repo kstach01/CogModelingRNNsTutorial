@@ -5,7 +5,7 @@ import numpy as np
 import pickle
 
 from typing import List, Optional
-from . import rnn_utils
+import rnn_utils
 
 
 JSON_PATH = "./data/miller2019_all_mice.json"  # Where raw mouse data is stored
