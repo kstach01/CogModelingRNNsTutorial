@@ -47,6 +47,13 @@ def load_data_for_one_rat(fname=None, data_dir=DATA_DIR, rat_id=None):
   return xs, ys, fname
 
 
+def format_into_dataset(xs, ys, dataset_constructor):
+  dataset_train = dataset_constructor(xs[:, ::2], ys[:, ::2])
+  dataset_test = dataset_constructor(xs[:, 1::2], ys[:, 1::2])
+  return dataset_train, dataset_test
+
+
+
 def find(s, ch):
   """Find index of character within string."""
   return [i for i, ltr in enumerate(s) if ltr == ch]
