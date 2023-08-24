@@ -5,39 +5,41 @@ import numpy as np
 import pickle
 
 from typing import List, Optional
-from . import rnn_utils
 
 
-JSON_PATH = "./CogModelingRNNsTutorial/data/miller2019_all_mice.json"  # Where raw mouse data is stored
-DATA_DIR = "./CogModelingRNNsTutorial/data/mouse_data/"  # Where you will save out individual mouse data
-
-def _get_single_mouse_fname(mouse_id):
-  assert isinstance(mouse_id, int)
-  mouse_id_padded = f'{mouse_id}'.rjust(2, '0')
-  return f"miller2019_mouse{mouse_id_padded}.npy"
+JSON_PATH = "./CogModelingRNNsTutorial/data/miller2018_all_rats.json"  # Where raw rat data is stored
+DATA_DIR = "./CogModelingRNNsTutorial/data/rat_data/"  # Where you will save out individual rat data
+PREFIX = "miller2018"
 
 
-def load_data_for_one_mouse(fname=None, data_dir=DATA_DIR, mouse_id=None):
-  """Load data for a single mouse."""
+def _get_single_rat_fname(rat_id):
+  assert isinstance(rat_id, int)
+  rat_id_padded = f'{rat_id}'.rjust(2, '0')
+  return f"{PREFIX}_rat{rat_id_padded}.npy"
+
+
+def load_data_for_one_rat(fname=None, data_dir=DATA_DIR, rat_id=None):
+  """Load data for a single rat."""
   if not os.path.exists(data_dir):
     raise ValueError(f'data_dir {data_dir} not found.')
 
   if fname is None:
-    mouse_files = [f for f in os.listdir(data_dir) if (f.startswith('miller2019_mouse') and f.endswith('.npy'))]
-    if mouse_id is None:  # Select a random mouse from those available.
-      fname = mouse_files[np.random.randint(len(mouse_files))]
+    rat_files = [f for f in os.listdir(data_dir) if (f.startswith(f'{PREFIX}_rat') and f.endswith('.npy'))]
+    if rat_id is None:  # Select a random rat from those available.
+      fname = rat_files[np.random.randint(len(rat_files))]
       print(f'Loading data from {fname}.')
 
     else:
-      fname = _get_single_mouse_fname(mouse_id)
-      if fname not in mouse_files:
+      fname = _get_single_rat_fname(rat_id)
+      if fname not in rat_files:
         raise ValueError((
-            f'File {fname} not found in {data_dir}; found {mouse_files}. '
-            'Check mouse_id and data_dir are correct.'))
+            f'File {fname} not found in {data_dir}; found {rat_files}. '
+            'Check rat_id and data_dir are correct.'))
   else:
     fpath = os.path.join(data_dir, fname)
     if not os.path.exists(fpath):
       raise ValueError(f'path {fpath} not found.')
+
   data = np.load(os.path.join(data_dir, fname))
   xs, ys = data[..., :2], data[..., 2:]
   assert ys.shape[-1] == 1
@@ -151,8 +153,8 @@ def get_rat_bandit_datasets(data_file: Optional[str] = None):
   return dataset_list
 
 
-def save_out_mouse_data_as_pickle(json_path=JSON_PATH, data_dir=DATA_DIR, verbose=True):
-  """Load json with all mouse data + save out individual RNNDatasets for each mouse."""
+def save_out_rat_data_as_pickle(json_path=JSON_PATH, data_dir=DATA_DIR, verbose=True):
+  """Load json with all rat data + save out individual RNNDatasets for each rat."""
   if not os.path.exists(json_path):
     raise ValueError(f'json_path {json_path} does not exist.')
 
@@ -167,9 +169,9 @@ def save_out_mouse_data_as_pickle(json_path=JSON_PATH, data_dir=DATA_DIR, verbos
   if verbose:
     print(f'Saving out data to {data_dir}.')
 
-  for mouse_id in range(len(dataset)):
-    fname = _get_single_mouse_fname(mouse_id)
+  for rat_id in range(len(dataset)):
+    fname = _get_single_rat_fname(rat_id)
     save_path = os.path.join(data_dir, fname)
-    xs, ys = dataset[mouse_id]
+    xs, ys = dataset[rat_id]
     np.save(save_path, np.concatenate([xs, ys], axis=-1))
 
