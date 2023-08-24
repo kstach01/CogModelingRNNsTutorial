@@ -10,6 +10,20 @@ import numpy as np
 
 from CogModelingRNNsTutorial.rnn_utils import DatasetRNN
 
+# Setup so that plots will look nice
+small = 15
+medium = 18
+large = 20
+plt.rc('axes', titlesize=large)
+plt.rc('axes', labelsize=medium)
+plt.rc('xtick', labelsize=small)
+plt.rc('ytick', labelsize=small)
+plt.rc('legend', fontsize=small)
+plt.rc('figure', titlesize=large)
+mpl.rcParams['grid.color'] = 'none'
+mpl.rcParams['axes.facecolor'] = 'white'
+plt.rcParams['svg.fonttype'] = 'none'
+
 ###################################
 # CONVENIENCE FUNCTIONS.          #
 ###################################
