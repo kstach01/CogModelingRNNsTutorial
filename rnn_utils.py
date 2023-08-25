@@ -111,7 +111,7 @@ class DatasetRNN():
 
     # Get start trial
     max_start_trial = int(np.min([find_session_end(self._xs), self._xs.shape[0] - self._seq_length]))
-    start_trial = np.random.randint(0, max_start_trial)
+    start_trial = np.random.randint(0, max_start_trial+1)
     end_trial = start_trial + self._seq_length
 
     # Get the chunks of data
