@@ -110,7 +110,7 @@ class DatasetRNN():
       self._idx = end
 
     # Get start trial
-    sess_end = np.max(self._xs[..., 0], axis=1)
+    sess_end = find_session_end(np.max(self._xs[..., 0], axis=1))
     max_start_trial = int(np.min([sess_end, self._xs.shape[0] - self._seq_length]))
     start_trial = np.random.randint(0, max_start_trial+1)
     end_trial = start_trial + self._seq_length
