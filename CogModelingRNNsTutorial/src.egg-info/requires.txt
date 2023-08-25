@@ -1,0 +1,4 @@
+dm-haiku
+numpy
+matplotlib
+scipy
