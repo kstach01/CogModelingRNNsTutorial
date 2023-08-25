@@ -32,8 +32,7 @@ class DatasetRNN():
   def __init__(self,
                xs: np.ndarray,
                ys: np.ndarray,
-               batch_size: Optional[int] = None,
-               max_seq_length: Optional[int] = None):
+               batch_size: Optional[int] = None):
     """Do error checking and bin up the dataset into batches.
 
     Args:
@@ -44,16 +43,10 @@ class DatasetRNN():
       batch_size: The size of the batch (number of episodes) to serve up each
         time next() is called. If not specified, all episodes in the dataset 
         will be served
-      max_seq_length: if provided, sequence snippets of this length will be
-        sampled (default=None)
-
     """
 
     if batch_size is None:
       batch_size = xs.shape[1]
-
-    if max_seq_length is None:
-      max_seq_length = xs.shape[0]
 
     # Error checking
     # Do xs and ys have the same number of timesteps?
@@ -73,16 +66,10 @@ class DatasetRNN():
       msg = 'dataset size {} must be divisible by batch_size {}.'
       raise ValueError(msg.format(xs.shape[1], batch_size))
 
-    if (max_seq_length is None) or (max_seq_length > xs.shape[0]):
-      seq_length = xs.shape[0] 
-    else:
-      seq_length = max_seq_length
-
     # Property setting
     self._xs = xs
     self._ys = ys
     self._batch_size = batch_size
-    self._seq_length = seq_length
     self._dataset_size = self._xs.shape[1]
     self._idx = 0
     self.n_batches = self._dataset_size // self._batch_size
@@ -109,14 +96,8 @@ class DatasetRNN():
     else:
       self._idx = end
 
-    # Get start trial
-    sess_end = find_session_end(np.max(self._xs[..., 0], axis=1))
-    max_start_trial = int(np.min([sess_end, self._xs.shape[0] - self._seq_length]))
-    start_trial = np.random.randint(0, max_start_trial+1)
-    end_trial = start_trial + self._seq_length
-
     # Get the chunks of data
-    x, y = self._xs[start_trial:end_trial, start:end], self._ys[start_trial:end_trial, start:end]
+    x, y = self._xs[:, start:end], self._ys[:, start:end]
 
     return x, y
 
@@ -140,6 +121,7 @@ def train_model(
     penalty_scale: float = 0,
     loss_fun: str = 'categorical',
     do_plot: bool = True,
+    truncate_seq_length: Optional[int] = None,
     ) -> Tuple[hk.Params, optax.OptState, Dict[str, np.ndarray]]:
   """Trains a model for a fixed number of steps.
 
@@ -158,6 +140,7 @@ def train_model(
     loss_fun: string specifying type of loss function (default='categorical')
     do_plot: Boolean that controls whether a learning curve is plotted
       (default=True)
+    truncate_seq_length: truncate to sequence length (default=None)
 
   Returns:
     params: Trained parameters
@@ -254,7 +237,12 @@ def train_model(
     random_key, key_i = jax.random.split(random_key, 2)
     # Train on training data
     xs, ys = next(dataset)
+    if truncate_seq_length < xs.shape[0]:
+      xs = xs[:truncate_seq_length]
+      ys = ys[:truncate_seq_length]
+
     loss, params, opt_state = train_step(params, opt_state, xs, ys, key_i)
+
     # Log every 10th step
     if step % 10 == 9:
       training_loss.append(float(loss))
@@ -263,7 +251,6 @@ def train_model(
 
   # If we actually did any training, print final loss and make a nice plot
   if n_steps > 1 and do_plot:
-
     plt.figure()
     plt.semilogy(training_loss, color='black')
     plt.xlabel('Training Step')
