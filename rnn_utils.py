@@ -237,7 +237,7 @@ def train_model(
     random_key, key_i = jax.random.split(random_key, 2)
     # Train on training data
     xs, ys = next(dataset)
-    if truncate_seq_length < xs.shape[0]:
+    if (truncate_seq_length is not None) and (truncate_seq_length < xs.shape[0]):
       xs = xs[:truncate_seq_length]
       ys = ys[:truncate_seq_length]
 
