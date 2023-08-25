@@ -58,8 +58,7 @@ class AgentQ:
       beta: float = 3.,
       n_actions: int = 2,
       forgetting_rate: float = 0.,
-      perseveration_rate: float = 0.,
-      anti_perseveration_rate: float = 0):
+      perseveration_bias: float = 0.):
     """Update the agent after one step of the task.
 
     Args:
@@ -67,26 +66,19 @@ class AgentQ:
       beta: scalar softmax inverse temperature parameter.
       n_actions: number of actions (default=2)
       forgetting_rate: rate at which q values decay toward the initial values (default=0)
-      perseveration_rate: rate at which q values move toward previous action (default=0)
-      anti_perseveration_rate: rate at which q values move against previous action (default=0).
-        In a 2-state environment, this will function as an alternation bias.
-        Note: if both perseveration_rate and anti_perseveration_rate are non-zero, these will
-        not cancel out, but will rather function as a boost in the value of both taken and
-        not taken-actions
+      perseveration_bias: rate at which q values move toward previous action (default=0)
     """
+    self._prev_choice = None
     self._alpha = alpha
     self._beta = beta
     self._n_actions = n_actions
     self._forgetting_rate = forgetting_rate
-    self._perseveration_rate = perseveration_rate
-    self._anti_perseveration_rate = anti_perseveration_rate
+    self._perseveration_bias = perseveration_bias
     self._q_init = 0.5
     self.new_sess()
 
     _check_in_0_1_range(alpha, 'alpha')
     _check_in_0_1_range(forgetting_rate, 'forgetting_rate')
-    _check_in_0_1_range(perseveration_rate, 'perseveration_rate')
-    _check_in_0_1_range(anti_perseveration_rate, 'anti_perseveration_rate')
 
   def new_sess(self):
     """Reset the agent for the beginning of a new session."""
@@ -94,8 +86,10 @@ class AgentQ:
 
   def get_choice_probs(self) -> np.ndarray:
     """Compute the choice probabilities as softmax over q."""
-    choice_probs = np.exp(self._beta * self._q) / np.sum(
-        np.exp(self._beta * self._q))
+    decision_variable = self._beta * self._q
+    if self._prev_choice is not None:
+      decision_variable[self._prev_choice] += self._perseveration_bias
+    choice_probs = np.exp(decision_variable) / np.sum(np.exp(decision_variable))
     return choice_probs
 
   def get_choice(self) -> int:
@@ -117,12 +111,13 @@ class AgentQ:
     self._q = ((1-self._forgetting_rate) * self._q +
                self._forgetting_rate * self._q_init)
 
-    # Apply perseveration and anti-perseveration of chosen action.
-    onehot_choice = np.eye(self._n_actions)[choice]
-    self._q = 0.5 * (
-        (2-self._perseveration_rate-self._anti_perseveration_rate) * self._q +
-        self._perseveration_rate * onehot_choice + 
-        self._anti_perseveration_rate * (1-onehot_choice))
+    self._prev_choice = choice
+    # # Apply perseveration and anti-perseveration of chosen action.
+    # onehot_choice = np.eye(self._n_actions)[choice]
+    # self._q = 0.5 * (
+    #     (2-self._perseveration_rate-self._anti_perseveration_rate) * self._q +
+    #     self._perseveration_rate * onehot_choice + 
+    #     self._anti_perseveration_rate * (1-onehot_choice))
 
     # Update chosen q for chosen action with observed reward.
     self._q[choice] = (1 - self._alpha) * self._q[choice] + self._alpha * reward
@@ -147,7 +142,8 @@ class AgentNetwork:
   def __init__(self,
                make_network: Callable[[], hk.RNNCore],
                params: hk.Params,
-               n_actions: int = 2):
+               n_actions: int = 2,
+               state_to_numpy: bool = False):
     """Initialize the agent network.
     
     Args: 
@@ -155,6 +151,7 @@ class AgentNetwork:
       params: parameters for the network
       n_actions: number of permitted actions (default = 2)
     """
+    self._state_to_numpy = state_to_numpy
 
     def _step_network(xs: np.ndarray,
                       state: hk.State) -> Tuple[np.ndarray, hk.State]:
@@ -209,10 +206,15 @@ class AgentNetwork:
     return choice
 
   def update(self, choice: int, reward: int):
-    self._xs = np.array([[choice, reward]])
-    _, new_state = self._model_fun(self._xs, self._state)
-    self._state = np.array(new_state)
-
+    try:
+      self._xs = np.array([[choice, reward]])
+      _, new_state = self._model_fun(self._xs, self._state)
+      if self._state_to_numpy:
+        self._state = np.array(new_state)
+      else:
+        self._state = new_state
+    except:
+      import pdb; pdb.set_trace()
 
 class VanillaAgentQ(AgentQ):
   """This agent is a wrapper of AgentQ with only alpha and beta parameters."""
@@ -222,33 +224,21 @@ class VanillaAgentQ(AgentQ):
         alpha, beta, n_actions=n_actions, forgetting_rate=0.)
 
 
-class MysteryAgentQ1(AgentQ):
+class MysteryAgentQ(AgentQ):
+  """Don't look at this agent if you want to do the exercises!"""
+
+  def __init__(self, alpha: float, beta: float, mystery_param: float = -0.1, n_actions: int = 2):
+    super(MysteryAgentQ, self).__init__(
+        alpha, beta, n_actions=n_actions, perseveration_bias=mystery_param)
+
+
+class ExtraMysteryAgentQ(AgentQ):
   """Don't look at this agent if you want to do the exercises!"""
 
   def __init__(self, alpha: float, beta: float, mystery_param=0.5, n_actions: int = 2):
     _check_in_0_1_range(mystery_param, 'mystery_param')
-    super(MysteryAgentQ1, self).__init__(
+    super(ExtraMysteryAgentQ, self).__init__(
         alpha, beta, n_actions=n_actions, forgetting_rate=mystery_param)
-
-
-class MysteryAgentQ2(AgentQ):
-  """Don't look at this agent if you want to do the exercises!"""
-
-  def __init__(self, alpha: float, beta: float, mystery_param: float = 0.5, n_actions: int = 2):
-    _check_in_0_1_range(mystery_param, 'mystery_param')
-    super(MysteryAgentQ2, self).__init__(
-        alpha, beta, n_actions=n_actions, perseveration_rate=mystery_param)
-
-
-class MysteryAgentQ3(AgentQ):
-  """Don't look at this agent if you want to do the exercises!"""
-
-  def __init__(self, alpha: float, beta: float, mystery_param: float = 0.5, n_actions: int = 2):
-    _check_in_0_1_range(mystery_param, 'mystery_param')
-    super(MysteryAgentQ3, self).__init__(alpha, beta, n_actions=n_actions,
-                                         anti_perseveration_rate=mystery_param)
-
-
 
 
 ################

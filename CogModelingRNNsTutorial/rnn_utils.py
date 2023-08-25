@@ -340,10 +340,10 @@ def fit_model(
 
     # Check if converged + print status.
     if converged:
-      msg = 'Model Converged!'
+      msg = '\nModel Converged!'
       continue_training = False
     elif (n_steps_per_call * n_calls_to_train_model) >= n_steps_max:
-      msg = 'Maximum iterations reached'
+      msg = '\nMaximum iterations reached'
       if np.isinf(loss):
         msg += '.'
       else:
@@ -351,8 +351,8 @@ def fit_model(
       continue_training = False
     else:
       update_msg = '' if np.isinf(loss) else f'(convergence_value = {convergence_value:0.7g}) '
-      msg = f'Model not yet converged {update_msg}- Running more steps of gradient descent.'
-    print(msg + ' Time elapsed = {time.time()-t_start:0.1}s.')
+      msg = f'\nModel not yet converged {update_msg}- Running more steps of gradient descent.'
+    print(msg + f' Time elapsed = {time.time()-t_start:0.1}s.')
     loss = loss_new
 
   return params, loss
