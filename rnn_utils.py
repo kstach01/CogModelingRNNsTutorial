@@ -12,6 +12,16 @@ import numpy as np
 import optax
 
 
+def find_session_end(x):
+  """Get last trial of session."""
+  # If the last 2 entries are -1, assume the session has been padded + find true session end.
+  if np.all(x[-2:] < 0):
+    trial_end = np.where((x[:-1] > 0) & (np.diff(x != 0)))[0][-1]
+  else:
+    trial_end = x.shape[0]
+  return trial_end
+
+
 class DatasetRNN():
   """Holds a dataset for training an RNN, consisting of inputs and targets.
 
@@ -22,7 +32,8 @@ class DatasetRNN():
   def __init__(self,
                xs: np.ndarray,
                ys: np.ndarray,
-               batch_size: Optional[int] = None):
+               batch_size: Optional[int] = None,
+               max_seq_length: Optional[int] = None):
     """Do error checking and bin up the dataset into batches.
 
     Args:
@@ -33,11 +44,16 @@ class DatasetRNN():
       batch_size: The size of the batch (number of episodes) to serve up each
         time next() is called. If not specified, all episodes in the dataset 
         will be served
+      max_seq_length: if provided, sequence snippets of this length will be
+        sampled (default=None)
 
     """
 
     if batch_size is None:
       batch_size = xs.shape[1]
+
+    if max_seq_length is None:
+      max_seq_length = xs.shape[0]
 
     # Error checking
     # Do xs and ys have the same number of timesteps?
@@ -57,10 +73,16 @@ class DatasetRNN():
       msg = 'dataset size {} must be divisible by batch_size {}.'
       raise ValueError(msg.format(xs.shape[1], batch_size))
 
+    if (max_seq_length is None) or (max_seq_length > xs.shape[0]):
+      seq_length = xs.shape[0] 
+    else:
+      seq_length = max_seq_length
+
     # Property setting
     self._xs = xs
     self._ys = ys
     self._batch_size = batch_size
+    self._seq_length = seq_length
     self._dataset_size = self._xs.shape[1]
     self._idx = 0
     self.n_batches = self._dataset_size // self._batch_size
@@ -87,8 +109,13 @@ class DatasetRNN():
     else:
       self._idx = end
 
+    # Get start trial
+    max_start_trial = int(np.min([find_session_end(self._xs), self._xs.shape[0] - self._seq_length]))
+    start_trial = np.random.randint(0, max_start_trial)
+    end_trial = start_trial + self._seq_length
+
     # Get the chunks of data
-    x, y = self._xs[:, start:end], self._ys[:, start:end]
+    x, y = self._xs[start_trial:end_trial, start:end], self._ys[start_trial:end_trial, start:end]
 
     return x, y
 
