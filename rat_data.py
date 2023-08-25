@@ -63,8 +63,9 @@ def format_into_datasets(xs, ys, dataset_constructor):
     dataset_train: a dataset containing even numbered sessions
     dataset_train: a dataset containing odd numbered sessions
   """
-  dataset_train = dataset_constructor(xs[:, ::2], ys[:, ::2])
-  dataset_test = dataset_constructor(xs[:, 1::2], ys[:, 1::2])
+  n = int(xs.shape[1] // 2) * 2
+  dataset_train = dataset_constructor(xs[:, :n:2], ys[:, ::2])
+  dataset_test = dataset_constructor(xs[:, 1:n:2], ys[:, 1::2])
   return dataset_train, dataset_test
 
 

@@ -403,7 +403,8 @@ def plot_session(choices: np.ndarray,
   # Make the plot
   plt.subplots(figsize=(10, 3))
   plt.plot(timeseries, label=labels)
-  plt.legend(bbox_to_anchor=(1, 1))
+  if labels is not None:
+    plt.legend(bbox_to_anchor=(1, 1))
 
   if choices.max() <= 1:
     # Rewarded high
