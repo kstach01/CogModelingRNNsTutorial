@@ -563,6 +563,9 @@ def show_valuemetric(experiment_list, label=None):
 
 
 def show_total_reward_rate(experiment_list):
+  if experiment_list is None:
+      print('Skipping showing reward rate for Non experiment_list')
+      return
   rewards = 0
   trials = 0
 
