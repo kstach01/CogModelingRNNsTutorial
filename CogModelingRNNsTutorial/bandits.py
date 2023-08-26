@@ -532,6 +532,9 @@ def create_dataset(agent: Agent,
 
 def show_valuemetric(experiment_list, label=None):
   """Plot value metric over time from data in experiment_list."""
+  if experiment_list is None:
+      print(('Skipping experiment because None value was found for experiment_lists.'
+             'This is usually the case when using imported real data.'))
 
   reward_prob_bins = np.linspace(-1, 1, 50)
   n_left = np.zeros(len(reward_prob_bins)-1)
