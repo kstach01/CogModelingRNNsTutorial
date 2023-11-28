@@ -27,8 +27,9 @@ def load_data_for_one_rat(fname=None, data_dir=DATA_DIR):
 
 
   Returns:
-    ys: n_trials x n_sessions x 2 array of choices and rewards
-    ys: n_trials x n_sessions x 1 array of rewards
+    xs: n_trials x n_sessions x 2 array of choices and rewards
+    ys: n_trials x n_sessions x 1 array of choices (shifted forward
+      by one compared to xs[..., 0]).
     fname: name of file
   """
   if not os.path.exists(data_dir):
