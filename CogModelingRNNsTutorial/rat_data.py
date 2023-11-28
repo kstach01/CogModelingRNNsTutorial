@@ -54,8 +54,9 @@ def format_into_datasets(xs, ys, dataset_constructor):
   """Format inputs xs and outputs ys into dataset.
 
   Args:
-    ys: n_trials x n_sessions x 2 array of choices and rewards
-    ys: n_trials x n_sessions x 1 array of rewards
+    xs: n_trials x n_sessions x 2 array of choices and rewards
+    ys: n_trials x n_sessions x 1 array of next choice. choice value of -1 denotes
+      instructed trial or padding at end of session.
     dataset_constructor: constructor that accepts xs and ys as arguments; probably
       use rnn_utils.DatasetRNN
 
