@@ -6,7 +6,7 @@ import scipy.stats as st
 
 def confidence_interval(data, alpha=0.95):
     return st.t.interval(
-        alpha=alpha, df=len(data)-1, loc=np.mean(data), scale=st.sem(data))
+        confidence=alpha, df=len(data)-1, loc=np.mean(data), scale=st.sem(data))
 
 
 def action_similarity_to_history(experiment_list, n):
